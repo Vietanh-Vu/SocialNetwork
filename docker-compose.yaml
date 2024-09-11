@@ -1,0 +1,61 @@
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.4.1
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_ROOT_USER=${DB_USER}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+    #      - MYSQL_USER=${DB_USER}
+    ports:
+      - ${DB_PORT}:3306
+  redis:
+    container_name: redis
+    image: redis:7.2.4
+    restart: no
+    ports:
+      - ${RD_PORT}:6379
+  api-service:
+    container_name: api-service
+    build:
+      context: Backend
+      dockerfile: Dockerfile
+    restart: no
+    ports:
+      - ${API_PORT}:8080
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - RD_HOST=${RD_HOST}
+      - RD_PORT=${RD_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - GM_USERNAME=${GM_USERNAME}
+      - GM_PASSWORD=${GM_PASSWORD}
+      - FRONT_END_DOMAIN=${FRONT_END_DOMAIN}
+    depends_on:
+      - mysql
+      - redis
+  socialnetwork-service:
+    container_name: socialnetwork-service
+    build:
+      context: Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${API_HOST}/api/v1
+      - NEXT_PUBLIC_ACCESS_TOKEN_EXPIRY=604800000
+      - NEXT_PUBLIC_ACCESS_REFRESH_EXPIRY=604800000
+      - NEXT_PUBLIC_ACCESS_VERIFY_EXPIRY=900000
+    depends_on:
+      - mysql
+      - redis
+      - api-service
