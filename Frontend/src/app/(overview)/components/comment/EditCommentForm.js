@@ -58,7 +58,6 @@ function EditCommentForm({commentInfo}) {
     }
 
     async function onSubmit(values) {
-        console.log(values);
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("content", values.content);

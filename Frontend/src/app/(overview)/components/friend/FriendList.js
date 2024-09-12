@@ -55,8 +55,6 @@ function FriendList({initialFriends, initialPageMeta, type}) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [handleScroll]);
 
-    console.log(initialFriends)
-
     return (
         <div>
             <div className="grid gap-6">

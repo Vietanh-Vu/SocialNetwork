@@ -18,8 +18,6 @@ export default async function Page({searchParams}) {
         friends = result.data.data;
     }
 
-    console.log(friends);
-
     return (
         <div className="flex flex-col gap-4 pt-6">
             <Search/>

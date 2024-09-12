@@ -37,7 +37,6 @@ function CommentForm({postId, parentCommentId}) {
     }
 
     async function onSubmit(values) {
-        console.log(values);
         const formData = new FormData();
         formData.append("postId", postId);
         if (parentCommentId) {

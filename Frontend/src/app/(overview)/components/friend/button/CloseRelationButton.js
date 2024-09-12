@@ -10,7 +10,6 @@ function CloseRelationButton({userId, closeRelationship}) {
     const [relation, setRelation] = useState(closeRelationship === null ? "FRIEND" : closeRelationship)
     const handleRelationChange = async (newRelation) => {
         setRelation(newRelation)
-        console.log(newRelation)
         if (newRelation === "FRIEND") {
             const result = await deleteCloseRelation(userId)
             if (result.isSuccessful) {

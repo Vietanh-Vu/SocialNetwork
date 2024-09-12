@@ -14,7 +14,6 @@ function SearchTag({onUserClick}) {
     const [value, setValue] = useState('');
 
     const handleSearch = useDebouncedCallback(async (inputValue) => {
-        console.log(inputValue);
         setValue(inputValue);
         const result = await searchFriend(1, inputValue);
         if (!result.isSuccessful) {

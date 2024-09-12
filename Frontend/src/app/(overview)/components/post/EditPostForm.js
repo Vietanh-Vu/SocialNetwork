@@ -96,8 +96,6 @@ function EditPostForm({postInfo}) {
     })
 
     const onSubmit = async (values) => {
-        console.log(values)
-
         const formData = new FormData()
         formData.append("id", id)
         formData.append("content", values.content)

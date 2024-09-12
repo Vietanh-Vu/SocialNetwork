@@ -46,7 +46,6 @@ function CommentItem({comment}) {
     const fetchChildComments = useCallback(async (page = 1) => {
         setIsLoadingMore(true);
         const result = await getChildComment(commentId, postId, page);
-        console.log(result)
         if (result.isSuccessful) {
             if (page === 1) {
                 setChildComments(result.data.data);

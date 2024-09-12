@@ -61,7 +61,6 @@ export async function login(loginForm) {
             const data = res.data.result.data
             cookies().set("access-token", data.accessToken, {maxAge: process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRY});
             cookies().set("refresh-token", data.refreshToken, {maxAge: process.env.NEXT_PUBLIC_ACCESS_REFRESH_EXPIRY});
-            console.log("data", data)
             return {
                 isSuccessful: true,
             }
@@ -79,7 +78,6 @@ export async function register(registerForm) {
     return await http
         .post("/auth/register", registerForm)
         .then((res) => {
-            console.log(res.data)
             return {
                 isSuccessful: true,
                 message: res.data.message
@@ -200,7 +198,6 @@ export async function resetPassword(new_password, token) {
 }
 
 export async function reactPost(postId) {
-    console.log("postId", postId)
     return await http
         .post(`/post_reaction`, {postId: postId, reactionType: "LIKE"})
         .then((res) => {
