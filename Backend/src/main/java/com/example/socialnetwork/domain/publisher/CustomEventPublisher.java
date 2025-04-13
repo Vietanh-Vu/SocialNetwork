@@ -1,42 +1,35 @@
 package com.example.socialnetwork.domain.publisher;
 
-import com.example.socialnetwork.common.event.*;
+import com.example.socialnetwork.infrastructure.kafka.SuggestionEventPublisher;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class CustomEventPublisher {
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final SuggestionEventPublisher suggestionEventPublisher;
 
     public void publishBlockedEvent(long user1Id, long user2Id) {
-        BlockedEvent customEvent = new BlockedEvent(this, user1Id, user2Id);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishBlockEvent(user1Id, user2Id);
     }
 
     public void publishUnblockedEvent(long user1Id, long user2Id) {
-        UnblockedEvent customEvent = new UnblockedEvent(this, user1Id, user2Id);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishUnblockEvent(user1Id, user2Id);
     }
 
     public void publishFriendDeletedEvent(long user1Id, long user2Id) {
-        FriendDeletedEvent customEvent = new FriendDeletedEvent(this, user1Id, user2Id);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishFriendDeleteEvent(user1Id, user2Id);
     }
 
     public void publishFriendRequestAcceptedEvent(long user1Id, long user2Id) {
-        FriendRequestAcceptedEvent customEvent = new FriendRequestAcceptedEvent(this, user1Id, user2Id);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishFriendAcceptEvent(user1Id, user2Id);
     }
 
     public void publishProfileUpdatedEvent(long userId) {
-        ProfileUpdatedEvent customEvent = new ProfileUpdatedEvent(this, userId);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishProfileUpdateEvent(userId);
     }
 
     public void publishRegisterEvent(long userId) {
-        RegisterEvent customEvent = new RegisterEvent(this, userId);
-        applicationEventPublisher.publishEvent(customEvent);
+        suggestionEventPublisher.publishRegisterEvent(userId);
     }
 }

@@ -18,4 +18,6 @@ public interface UserDatabasePort {
     List<UserDomain> getAllUser();
     UserDomain findByEmail(String email);
     void updatePassword(Long userId, String password);
+    List<UserDomain> searchUser(String keyword);
+    List<UserDomain> searchFriend(Long userId, String keyword);
 }

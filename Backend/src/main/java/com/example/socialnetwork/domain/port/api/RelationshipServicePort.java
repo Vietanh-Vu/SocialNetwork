@@ -1,6 +1,7 @@
 package com.example.socialnetwork.domain.port.api;
 
 import com.example.socialnetwork.application.response.FriendResponse;
+import com.example.socialnetwork.domain.model.UserDomain;
 import org.springframework.data.domain.Page;
 
 public interface RelationshipServicePort {
@@ -32,5 +33,5 @@ public interface RelationshipServicePort {
 
     Page<FriendResponse> getFriendSuggestions(int page, int pageSize);
 
-    Page<FriendResponse> searchUser(int page, int pageSize, String keyWord);
+    Page<UserDomain> searchUser(int page, int pageSize, String keyWord);
 }

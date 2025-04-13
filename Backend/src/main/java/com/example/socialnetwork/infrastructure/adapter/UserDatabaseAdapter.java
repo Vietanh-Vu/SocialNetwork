@@ -6,21 +6,31 @@ import com.example.socialnetwork.common.constant.Visibility;
 import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.domain.model.UserDomain;
 import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
+import com.example.socialnetwork.infrastructure.elasticsearch.UserDocument;
 import com.example.socialnetwork.infrastructure.entity.User;
+import com.example.socialnetwork.infrastructure.repository.UserElasticsearchRepository;
 import com.example.socialnetwork.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.socialnetwork.infrastructure.entity.Role;
 
 
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class UserDatabaseAdapter implements UserDatabasePort {
     private final PasswordEncoder encoder;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserElasticsearchRepository userElasticsearchRepository;
     @Override
     public UserDomain createUser(RegisterRequest registerRequest) {
         User user = userRepository.findByEmail(registerRequest.getEmail()).orElse(null);
@@ -81,5 +91,60 @@ public class UserDatabaseAdapter implements UserDatabasePort {
     @Override
     public void updatePassword(Long userId, String password) {
         userRepository.updatePassword(userId, password);
+    }
+
+    @Override
+    public List<UserDomain> searchUser(String keyword) {
+        List<UserDocument> userDocuments = userElasticsearchRepository.findByUsernameContaining(keyword);
+        List<UserDomain> userDomains = new ArrayList<>();
+
+        userDocuments.forEach(e -> {
+            userDomains.add(UserDomain.builder()
+                    .id(Objects.isNull(e.getUserId()) ? 1 : e.getUserId())
+                    .username(e.getUsername())
+                    .email(e.getEmail())
+                    .firstName(e.getFirstName())
+                    .lastName(e.getLastName())
+                    .bio(e.getBio())
+                    .dateOfBirth(e.getDateOfBirth())
+                    .location(e.getLocation())
+                    .work(e.getWork())
+                    .education(e.getEducation())
+                    .avatar(e.getAvatar())
+                    .backgroundImage(e.getBackgroundImage())
+                    .createdAt(e.getCreatedAt())
+                    .updatedAt(e.getUpdatedAt())
+                    .isEmailVerified(e.getIsEmailVerified())
+                .build());
+        });
+
+        return userDomains;
+    }
+
+    @Override
+    public List<UserDomain> searchFriend(Long userId, String keyword) {
+        List<UserDocument> userDocuments = userElasticsearchRepository.findFriendsByKeyword(userId, keyword);
+        List<UserDomain> userDomains = new ArrayList<>();
+
+        userDocuments.forEach(e -> {
+            userDomains.add(UserDomain.builder()
+                .id(Objects.isNull(e.getUserId()) ? 1 : e.getUserId())
+                .username(e.getUsername())
+                .email(e.getEmail())
+                .firstName(e.getFirstName())
+                .lastName(e.getLastName())
+                .bio(e.getBio())
+                .dateOfBirth(e.getDateOfBirth())
+                .location(e.getLocation())
+                .work(e.getWork())
+                .education(e.getEducation())
+                .avatar(e.getAvatar())
+                .backgroundImage(e.getBackgroundImage())
+                .createdAt(e.getCreatedAt())
+                .updatedAt(e.getUpdatedAt())
+                .isEmailVerified(e.getIsEmailVerified())
+                .build());
+        });
+        return userDomains;
     }
 }

@@ -12,11 +12,14 @@ import com.example.socialnetwork.domain.port.spi.RelationshipDatabasePort;
 import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
 import com.example.socialnetwork.exception.custom.NotAllowException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
+import com.example.socialnetwork.infrastructure.elasticsearch.UserDocument;
 import com.example.socialnetwork.infrastructure.entity.User;
+import com.example.socialnetwork.infrastructure.repository.UserElasticsearchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +36,7 @@ public class UserServiceImpl implements UserServicePort {
     private final StorageServicePort storageService;
     private final CustomEventPublisher customEventPublisher;
     private final StorageServicePort storageServicePort;
+    private final UserElasticsearchRepository userElasticsearchRepository;
     @Value("${link.front-end-domain}")
     private String domain;
     @Value("${link.confirm-email-verify}")

@@ -3,6 +3,7 @@ package com.example.socialnetwork.common.mapper;
 import com.example.socialnetwork.application.response.ProfileResponse;
 import com.example.socialnetwork.common.constant.ERole;
 import com.example.socialnetwork.domain.model.UserDomain;
+import com.example.socialnetwork.infrastructure.elasticsearch.UserDocument;
 import com.example.socialnetwork.infrastructure.entity.Role;
 import com.example.socialnetwork.infrastructure.entity.User;
 import org.mapstruct.Mapper;

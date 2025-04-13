@@ -7,17 +7,11 @@ import com.example.socialnetwork.common.constant.Visibility;
 import com.example.socialnetwork.common.mapper.CommentMapper;
 import com.example.socialnetwork.common.util.HandleFile;
 import com.example.socialnetwork.common.util.SecurityUtil;
-import com.example.socialnetwork.domain.model.CommentDomain;
-import com.example.socialnetwork.domain.model.PostDomain;
-import com.example.socialnetwork.domain.model.RelationshipDomain;
-import com.example.socialnetwork.domain.model.UserDomain;
+import com.example.socialnetwork.domain.model.*;
 import com.example.socialnetwork.domain.port.api.CommentServicePort;
 import com.example.socialnetwork.domain.port.api.S3ServicePort;
 import com.example.socialnetwork.domain.port.api.StorageServicePort;
-import com.example.socialnetwork.domain.port.spi.CommentDatabasePort;
-import com.example.socialnetwork.domain.port.spi.PostDatabasePort;
-import com.example.socialnetwork.domain.port.spi.RelationshipDatabasePort;
-import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
+import com.example.socialnetwork.domain.port.spi.*;
 import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.exception.custom.NotAllowException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
@@ -49,6 +43,7 @@ public class CommentServiceImpl implements CommentServicePort {
     private final S3ServicePort s3ServicePort;
     private Model model;
     private static final double SPAM_THRESHOLD = 0.6;
+    private final ProblematicCommentPort problematicCommentPort;
 
     @PostConstruct
     public void init()  {
@@ -60,14 +55,21 @@ public class CommentServiceImpl implements CommentServicePort {
         }
     }
 
-    private void isSpam(String content) {
+    private void isSpam(CommentDomain commentDomain) {
         Map<String, Object> input = new HashMap<>();
-        input.put("free_text", content);
+        input.put("free_text", commentDomain.getContent());
 
         Map<?, ?> results = model.predict(input);
         double spamProbability = (double) results.get("probability(1)");
-        System.out.println(content + " " + spamProbability);
+        System.out.println(commentDomain.getContent() + " " + spamProbability);
         if (spamProbability > SPAM_THRESHOLD) {
+            ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
+                    .user(commentDomain.getUser())
+                    .content(commentDomain.getContent())
+                    .createdAt(Instant.now())
+                    .spamProbability(spamProbability)
+                    .build();
+            problematicCommentPort.createProblematicComment(problematicComment);
             throw new NotAllowException("Your comment is considered as spam");
         }
     }
@@ -141,7 +143,7 @@ public class CommentServiceImpl implements CommentServicePort {
 //        }
         checkUserCommentAndUserPost(userId, commentRequest.getPostId());
         checkParentComment(userId, commentRequest.getParentCommentId(), commentRequest.getPostId());
-        isSpam(commentRequest.getContent());
+        isSpam(commentMapper.commentRequestToCommentDomain(commentRequest));
         long postId = commentRequest.getPostId();
         PostDomain postDomain = postDatabasePort.findById(postId);
         postDomain.setLastComment(Instant.now());
@@ -166,7 +168,7 @@ public class CommentServiceImpl implements CommentServicePort {
         }
 
         checkParentComment(userId, currentComment.getParentCommentId(), currentComment.getPost().getId());
-        isSpam(content);
+        isSpam(currentComment);
         currentComment.setContent(content);
         currentComment.setUpdatedAt(Instant.now());
 

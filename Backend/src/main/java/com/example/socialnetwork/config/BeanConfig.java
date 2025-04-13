@@ -55,13 +55,13 @@ public class BeanConfig {
     }
 
     @Bean
-    public UserServicePort userServicePort(EmailServicePort emailService, UserDatabasePort userDatabase, RelationshipDatabasePort relationshipDatabasePort, S3ServicePort s3Service, StorageServicePort storageService, CustomEventPublisher customEventPublisher, StorageServicePort storageServicePort) {
-        return new UserServiceImpl(emailService, userDatabase, relationshipDatabasePort, s3Service, storageService, customEventPublisher, storageServicePort);
+    public UserServicePort userServicePort(EmailServicePort emailService, UserDatabasePort userDatabase, RelationshipDatabasePort relationshipDatabasePort, S3ServicePort s3Service, StorageServicePort storageService, CustomEventPublisher customEventPublisher, StorageServicePort storageServicePort, UserElasticsearchRepository userElasticsearchRepository) {
+        return new UserServiceImpl(emailService, userDatabase, relationshipDatabasePort, s3Service, storageService, customEventPublisher, storageServicePort, userElasticsearchRepository);
     }
 
     @Bean
-    public UserDatabasePort userDatabasePort(UserRepository userRepository, PasswordEncoder encoder, UserMapper userMapper) {
-        return new UserDatabaseAdapter(encoder,userRepository, userMapper);
+    public UserDatabasePort userDatabasePort(UserRepository userRepository, PasswordEncoder encoder, UserMapper userMapper, UserElasticsearchRepository userElasticsearchRepository) {
+        return new UserDatabaseAdapter(encoder,userRepository, userMapper, userElasticsearchRepository);
     }
 
     @Bean
@@ -112,8 +112,8 @@ public class BeanConfig {
     }
 
     @Bean
-    public CommentServicePort commentServicePort(CommentDatabasePort commentDatabasePort, UserDatabasePort userDatabase, PostDatabasePort postDatabasePort, RelationshipDatabasePort relationshipDatabasePort, CommentMapper commentMapper,StorageServicePort storageServicePort, S3ServicePort s3ServicePort) {
-        return new CommentServiceImpl(commentDatabasePort, userDatabase, postDatabasePort, relationshipDatabasePort, commentMapper, storageServicePort, s3ServicePort);
+    public CommentServicePort commentServicePort(CommentDatabasePort commentDatabasePort, UserDatabasePort userDatabase, PostDatabasePort postDatabasePort, RelationshipDatabasePort relationshipDatabasePort, CommentMapper commentMapper,StorageServicePort storageServicePort, S3ServicePort s3ServicePort, ProblematicCommentPort problematicCommentPort) {
+        return new CommentServiceImpl(commentDatabasePort, userDatabase, postDatabasePort, relationshipDatabasePort, commentMapper, storageServicePort, s3ServicePort, problematicCommentPort);
     }
 
     @Bean

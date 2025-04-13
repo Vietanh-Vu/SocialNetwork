@@ -11,7 +11,7 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-#    show-sql: true
+    #    show-sql: true
     open-in-view: false
   mail:
     host: smtp.gmail.com
@@ -24,6 +24,18 @@ spring:
           auth: true
           starttls:
             enable: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: social-network
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -32,11 +44,18 @@ spring:
     redis:
       host: ${RD_HOST}
       port: ${RD_PORT}
+    elasticsearch:
+      host: ${ES_HOST}
+      port: ${ES_PORT}
   servlet:
     multipart:
       enabled: true
       max-file-size: 2MB
       max-request-size: 2MB
+  elasticsearch:
+    uris: http://${ES_HOST}:${ES_PORT}
+    connection-timeout: 5s
+    socket-timeout: 3s
 token:
   secret-key: ${JWT_SECRET}
   access-expiration: 7200000 # 7200000 # 1000 * 60 * 60 * 2 = 2 hours
@@ -62,4 +81,3 @@ link:
   front-end-domain: ${FRONT_END_DOMAIN}
   forgot-password-verify: /forgot_password/verify?token=
   confirm-email-verify: /register/verify?token=
-

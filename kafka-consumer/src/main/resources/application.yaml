@@ -1,0 +1,38 @@
+server:
+  port: 8181
+spring:
+  application:
+    name: kafka-consumer
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: false
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: social-network
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: org.example.kafkaconsumer.share.event.SuggestionEvent
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+      topics:
+        users:
+          topic: cdc.socialnetwork.users
+        suggestions:
+          topic: suggestion-events
+    enabled: true
+  data:
+    elasticsearch:
+      host: ${ES_HOST}
+      port: ${ES_PORT}

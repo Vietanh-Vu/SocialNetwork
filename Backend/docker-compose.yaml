@@ -1,7 +1,11 @@
+networks:
+  social-network:
+    driver: bridge
+
 services:
   mysql:
-    container_name: mysql
-    image: mysql:8.4.1
+    container_name: mysql1
+    image: mysql:8.0-debian
     environment:
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_PASSWORD=${DB_PASS}
@@ -10,39 +14,118 @@ services:
 #      - MYSQL_USER=${DB_USER}
     ports:
       - ${DB_PORT}:3306
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL
+    networks:
+      - social-network
   redis:
-    container_name: redis
+    container_name: redis1
     image: redis:7.2.4
     restart: no
     ports:
       - ${RD_PORT}:6379
-  api-service:
-    container_name: api-service
-    build:
-      context: .
-      dockerfile: Dockerfile
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
     restart: no
     ports:
-      - ${API_PORT}:8080
+      - ${ES_PORT}:9200
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - RD_HOST=${RD_HOST}
-      - RD_PORT=${RD_PORT}
-      - JWT_SECRET=${JWT_SECRET}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - GM_USERNAME=${GM_USERNAME}
-      - GM_PASSWORD=${GM_PASSWORD}
-      - FRONT_END_DOMAIN=${FRONT_END_DOMAIN}
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    mem_limit: 1g
+    networks:
+      - social-network
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    restart: no
+    ports:
+      - ${KAFKA_UI_PORT}:8080
+    environment:
+      - DYNAMIC_CONFIG_ENABLED=true
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${KAFKA_HOST}:${KAFKA_PORT}
+    networks:
+      - social-network
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    container_name: zookeeper
+    restart: no
+    ports:
+      - ${ZOOKEEPER_CLIENT_PORT}:2181
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    networks:
+      - social-network
+  broker:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: broker
+    restart: no
+    ports:
+      - "9092:9092"
     depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - social-network
+  debezium-connect:
+    image: debezium/connect:2.3
+    container_name: debezium-connect
+    ports:
+      - "8083:8083"
+    environment:
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=connect_configs
+      - OFFSET_STORAGE_TOPIC=connect_offsets
+      - STATUS_STORAGE_TOPIC=connect_statuses
+      - BOOTSTRAP_SERVERS=broker:29092
+      - KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - KEY_CONVERTER_SCHEMAS_ENABLE=true
+      - VALUE_CONVERTER_SCHEMAS_ENABLE=true
+    depends_on:
+      - broker
       - mysql
-      - redis
+    networks:
+      - social-network
+#  api-service:
+#    container_name: api-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    restart: no
+#    ports:
+#      - ${API_PORT}:8080
+#    environment:
+#      - DB_HOST=${DB_HOST}
+#      - DB_PORT=${DB_PORT}
+#      - DB_NAME=${DB_NAME}
+#      - DB_USER=${DB_USER}
+#      - DB_PASS=${DB_PASS}
+#      - RD_HOST=${RD_HOST}
+#      - RD_PORT=${RD_PORT}
+#      - JWT_SECRET=${JWT_SECRET}
+#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+#      - AWS_REGION=${AWS_REGION}
+#      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+#      - GM_USERNAME=${GM_USERNAME}
+#      - GM_PASSWORD=${GM_PASSWORD}
+#      - FRONT_END_DOMAIN=${FRONT_END_DOMAIN}
+#    depends_on:
+#      - mysql
+#      - redis
 #  ngrok:
 #    image: ngrok/ngrok:latest
 #    restart: unless-stopped
