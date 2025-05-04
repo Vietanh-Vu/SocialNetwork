@@ -38,8 +38,7 @@
   - Framework: Flask
   - Server: Gunicorn
 
+
 ### 🚀 Deployment
 
 - Container Platform: Docker
-
----
