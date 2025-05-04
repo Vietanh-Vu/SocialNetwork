@@ -1,22 +1,47 @@
-# Tech Stack
+# Social Network Project
 
-## Frontend
+A modern social networking platform built with microservices architecture.
 
-NextJs + Shadcn + Tailwind + Axios
+## Tech Stack
 
-## Backend (Restful API)
+### 🌐 Frontend
 
-Spring Boot + JWT + MySQL + Flyway + Redis + AWS S3
+- **Framework:** Next.js
+- **UI Components:** Shadcn
+- **Styling:** Tailwind CSS
+- **HTTP Client:** Axios
 
-## kafka-consumer
+### 🔧 Backend (RESTful API)
 
-Spring Kafka + Elasticsearch + CDC (Change Data Capture) + Debezium
+- **Framework:** Spring Boot
+- **Authentication:** JWT
+- **Database:** MySQL
+- **Migration:** Flyway
+- **Caching:** Redis
+- **Storage:** AWS S3
 
-## AI
+### 📊 Data Pipeline
 
-- Model: PhoBERT + Transformers (Hugging Face) + VOZHSD + ViHSD
-- detect-comment-service: Flask + gunicorn
+- **Message Queue:** Spring Kafka
+- **Search Engine:** Elasticsearch
+- **Data Sync:** CDC (Change Data Capture)
+- **CDC Tool:** Debezium
 
-## Deploy
+### 🤖 AI Components
 
-Docker
+- **Model Architecture:**
+
+  - Base: PhoBERT
+  - Framework: Transformers (Hugging Face)
+  - Training Data: VOZHSD + ViHSD
+  - Full model: [Download Link](https://drive.google.com/file/d/19ICXGjJ5tbpJWBAV0JG0icNnt8Ww_yro/view?usp=sharing)
+
+- **Comment Detection Service:**
+  - Framework: Flask
+  - Server: Gunicorn
+
+### 🚀 Deployment
+
+- Container Platform: Docker
+
+---
