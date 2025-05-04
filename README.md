@@ -1,7 +1,5 @@
 # Social Network Project
 
-A modern social networking platform built with microservices architecture.
-
 ## Tech Stack
 
 ### 🌐 Frontend
