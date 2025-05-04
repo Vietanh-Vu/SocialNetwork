@@ -13,6 +13,6 @@ public class PostReactionDomain {
     private Long id = null;
     private Long userId;
     private Long postId;
-    private String reactionType;
+//    private String reactionType;
     private Instant createdAt;
 }

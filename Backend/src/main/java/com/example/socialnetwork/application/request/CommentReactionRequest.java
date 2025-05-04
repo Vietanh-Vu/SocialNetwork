@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommentReactionRequest {
     private Long commentId;
-    private String reactionType;
+//    private String reactionType;
 }

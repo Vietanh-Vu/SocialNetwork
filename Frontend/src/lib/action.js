@@ -199,7 +199,8 @@ export async function resetPassword(new_password, token) {
 
 export async function reactPost(postId) {
     return await http
-        .post(`/post_reaction`, {postId: postId, reactionType: "LIKE"})
+        // .post(`/post_reaction`, {postId: postId, reactionType: "LIKE"})
+        .post(`/post_reaction`, {postId: postId})
         .then((res) => {
             return {
                 isSuccessful: true,
@@ -216,7 +217,8 @@ export async function reactPost(postId) {
 
 export async function reactComment(commentId) {
     return await http
-        .post(`/comment_reaction`, {commentId: commentId, reactionType: "LIKE"})
+        // .post(`/comment_reaction`, {commentId: commentId, reactionType: "LIKE"})
+        .post(`/comment_reaction`, {commentId: commentId})
         .then((res) => {
             return {
                 isSuccessful: true,

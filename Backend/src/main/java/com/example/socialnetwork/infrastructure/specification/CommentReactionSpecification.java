@@ -12,12 +12,13 @@ public class CommentReactionSpecification {
         return (root, query, cb) -> cb.equal(root.get(CommentReaction.Fields.comment).get("id"), commentId);
     }
 
-    public static Specification<CommentReaction> withCommentReactionType(String reactionType) {
-        return (root, query, cb) -> cb.equal(root.get(CommentReaction.Fields.reactionType), reactionType);
-    }
+//    public static Specification<CommentReaction> withCommentReactionType(String reactionType) {
+//        return (root, query, cb) -> cb.equal(root.get(CommentReaction.Fields.reactionType), reactionType);
+//    }
 
     public static Specification<CommentReaction> withUserIdAndVisibility(Long commentId, String reactionType) {
-        return Specification.where(withCommentId(commentId)).and(withCommentReactionType(reactionType));
+//        return Specification.where(withCommentId(commentId)).and(withCommentReactionType(reactionType));
+        return Specification.where(withCommentId(commentId));
     }
     public static Specification<CommentReaction> withoutUserId(List<Long> userId) {
         return (root, query, cb) -> cb.not(root.get(CommentReaction.Fields.user).get("id").in(userId));

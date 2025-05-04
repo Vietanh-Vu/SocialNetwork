@@ -15,7 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 import static com.example.socialnetwork.infrastructure.specification.CommentReactionSpecification.withCommentId;
-import static com.example.socialnetwork.infrastructure.specification.CommentReactionSpecification.withCommentReactionType;
+//import static com.example.socialnetwork.infrastructure.specification.CommentReactionSpecification.withCommentReactionType;
 import static com.example.socialnetwork.infrastructure.specification.CommentReactionSpecification.withoutUserId;
 
 @RequiredArgsConstructor
@@ -64,7 +64,7 @@ public class CommentReactionDatabaseAdapter implements CommentReactionDatabasePo
         CommentReaction commentReaction = commentReactionRepository.findById(commentReactionDomain.getId()).orElse(null);
 
         assert commentReaction != null;
-        commentReaction.setReactionType(commentReactionDomain.getReactionType());
+//        commentReaction.setReactionType(commentReactionDomain.getReactionType());
         return CommentReactionMapper.INSTANCE.entityToDomain(commentReactionRepository.save(commentReaction));
     }
 
@@ -73,9 +73,9 @@ public class CommentReactionDatabaseAdapter implements CommentReactionDatabasePo
         if (commentId != null) {
             spec = spec.and(withCommentId(commentId).and(withoutUserId(listBlockFriend)));
         }
-        if (commentReactionType != null && !commentReactionType.isEmpty()) {
-            spec = spec.and(withCommentReactionType(commentReactionType));
-        }
+//        if (commentReactionType != null && !commentReactionType.isEmpty()) {
+//            spec = spec.and(withCommentReactionType(commentReactionType));
+//        }
         return spec;
     }
 }

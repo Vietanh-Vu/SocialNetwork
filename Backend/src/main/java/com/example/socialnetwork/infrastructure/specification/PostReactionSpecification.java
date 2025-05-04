@@ -15,12 +15,13 @@ public class PostReactionSpecification {
         return (root, query, cb) -> cb.equal(root.get(PostReaction.Fields.post).get("id"), postId);
     }
 
-    public static Specification<PostReaction> withPostReactionType(String reactionType) {
-        return (root, query, cb) -> cb.equal(root.get(PostReaction.Fields.reactionType), reactionType);
-    }
+//    public static Specification<PostReaction> withPostReactionType(String reactionType) {
+//        return (root, query, cb) -> cb.equal(root.get(PostReaction.Fields.reactionType), reactionType);
+//    }
 
     public static Specification<PostReaction> withUserIdAndVisibility(Long postId, String reactionType) {
-        return Specification.where(withPostId(postId)).and(withPostReactionType(reactionType));
+//        return Specification.where(withPostId(postId)).and(withPostReactionType(reactionType));
+        return Specification.where(withPostId(postId));
     }
 
     public static Specification<PostReaction> withoutUserId(List<Long> userId) {

@@ -9,6 +9,11 @@ CREATE TABLE suggestions
     status         ENUM('BLOCK','FRIEND','NONE') default 'NONE'
 );
 
+-- Add indexes to suggestions table
+CREATE INDEX idx_suggestions_user_id ON suggestions(user_id);
+CREATE INDEX idx_suggestions_friend_id ON suggestions(friend_id);
+CREATE INDEX idx_suggestions_user_friend ON suggestions(user_id, friend_id);
+
 INSERT INTO suggestions (user_id, friend_id, suggest_point, mutual_friends, status)
 VALUES (1, 2, 20, 0, 'FRIEND'),
        (1, 3, 10, 0, 'BLOCK'),

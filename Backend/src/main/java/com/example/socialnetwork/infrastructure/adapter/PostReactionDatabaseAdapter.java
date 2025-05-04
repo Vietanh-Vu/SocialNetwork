@@ -50,12 +50,12 @@ public class PostReactionDatabaseAdapter implements PostReactionDatabasePort {
         return postReactionRepository.findAll(spec, pageable).map(PostReactionMapper.INSTANCE::entityToDomain);
     }
 
-    @Override
-    public PostReactionDomain findByUserIdAndPostIdAndReactionType(Long userId, Long postId, String reactionType) {
-        return postReactionRepository.findByUserIdAndPostIdAndReactionType(userId, postId, reactionType)
-                .map(PostReactionMapper.INSTANCE::entityToDomain)
-                .orElse(null); // Trả về null nếu không tìm thấy giá trị phù hợp
-    }
+//    @Override
+//    public PostReactionDomain findByUserIdAndPostIdAndReactionType(Long userId, Long postId, String reactionType) {
+//        return postReactionRepository.findByUserIdAndPostIdAndReactionType(userId, postId, reactionType)
+//                .map(PostReactionMapper.INSTANCE::entityToDomain)
+//                .orElse(null); // Trả về null nếu không tìm thấy giá trị phù hợp
+//    }
 
     @Override
     public PostReactionDomain findByUserIdAndPostId(Long userId, Long postId) {
@@ -76,9 +76,9 @@ public class PostReactionDatabaseAdapter implements PostReactionDatabasePort {
         if (postId != null) {
             spec = spec.and(withPostId(postId).and(withoutUserId(listBlockFriend)));
         }
-        if (postReactionType != null && !postReactionType.isEmpty()) {
-            spec = spec.and(withPostReactionType(postReactionType));
-        }
+//        if (postReactionType != null && !postReactionType.isEmpty()) {
+//            spec = spec.and(withPostReactionType(postReactionType));
+//        }
         return spec;
     }
 

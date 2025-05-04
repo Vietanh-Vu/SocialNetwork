@@ -89,3 +89,61 @@ hs_err_pid*
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+.python-version
+
+# Flask instance folder
+instance/
+
+# Environment variables
+*.env
+.env.*
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# IDE settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Pytest or test cache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Dist and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Database files (nếu dùng SQLite chẳng hạn)
+*.sqlite3
+*.db
+
+# Jupyter notebooks checkpoints (nếu dùng)
+.ipynb_checkpoints/

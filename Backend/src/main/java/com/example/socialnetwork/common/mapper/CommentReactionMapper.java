@@ -23,7 +23,7 @@ public interface CommentReactionMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user.id", expression = "java(getUserId())")
     @Mapping(source = "commentId", target = "comment.commentId")
-    @Mapping(source = "reactionType", target = "reactionType")
+//    @Mapping(source = "reactionType", target = "reactionType")
     @Mapping(target = "createdAt", expression = "java(getCreateAt())")
     CommentReactionDomain requestToDomain(CommentReactionRequest commentReactionRequest);
 
@@ -38,7 +38,7 @@ public interface CommentReactionMapper {
 
     @Mapping(source = "commentReactionDomain.id", target = "id")
     @Mapping(source = "commentReactionDomain.user.id", target = "userId")
-    @Mapping(source = "commentReactionDomain.reactionType", target = "reactionType")
+//    @Mapping(source = "commentReactionDomain.reactionType", target = "reactionType")
     @Mapping(source = "commentReactionDomain.createdAt", target = "createdAt")
     @Mapping(source = "userDomain.username", target = "username")
     @Mapping(source = "userDomain.avatar", target = "avatar")

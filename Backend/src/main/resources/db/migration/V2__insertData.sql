@@ -171,11 +171,10 @@ BEGIN
             -- Thêm phản ứng "LIKE" cho bình luận (từ 0 đến 10)
             SET k = 0;
             WHILE k < FLOOR(RAND() * 11) DO
-                INSERT INTO comment_reactions (user_id,comment_id,reaction_type,created_at)
+                INSERT INTO comment_reactions (user_id,comment_id,created_at)
                 VALUES (
                     FLOOR(1 + RAND() * 53),
                     comment_id_var,
-                    'LIKE',
                     DATE_ADD(post_created_at,INTERVAL FLOOR(RAND() * 24 * 60) MINUTE)
                 );
                 SET k = k + 1;
@@ -187,11 +186,10 @@ BEGIN
         -- Thêm phản ứng "LIKE" cho bài đăng (từ 0 đến 10)
         SET k = 0;
         WHILE k < FLOOR(RAND() * 11) DO
-            INSERT INTO post_reactions (user_id,post_id,reaction_type,created_at)
+            INSERT INTO post_reactions (user_id,post_id,created_at)
             VALUES (
                 FLOOR(1 + RAND() * 53),
                 post_id_var,
-                'LIKE',
                 DATE_ADD(post_created_at,INTERVAL FLOOR(RAND() * 24 * 60) MINUTE)
             );
             SET k = k + 1;

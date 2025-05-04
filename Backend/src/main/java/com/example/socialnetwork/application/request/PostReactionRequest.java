@@ -14,6 +14,6 @@ import java.time.LocalDate;
 public class PostReactionRequest {
     @NotNull(message = "Post ID is required")
     private Long postId;
-    @NotBlank(message = "Reaction type is required")
-    private String reactionType;
+//    @NotBlank(message = "Reaction type is required")
+//    private String reactionType;
 }

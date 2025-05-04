@@ -5,7 +5,8 @@ spring:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER}
     password: ${DB_PASS}
-
+  main:
+    allow-bean-definition-overriding: true
   jpa:
     properties:
       hibernate:
@@ -81,3 +82,10 @@ link:
   front-end-domain: ${FRONT_END_DOMAIN}
   forgot-password-verify: /forgot_password/verify?token=
   confirm-email-verify: /register/verify?token=
+detect-comment:
+  api:
+    url: ${DETECT_COMMENT_HOST}
+    key: ${X_API_KEY}
+logging:
+  level:
+    com.example.socialnetwork.infrastructure.rest_client: DEBUG

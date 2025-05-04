@@ -55,7 +55,7 @@ CREATE TABLE posts
 (
     post_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id     BIGINT,
-    content     VARCHAR(255),
+    content     TEXT,
     visibility  ENUM('PUBLIC', 'FRIEND', 'PRIVATE'),
     created_at  DATETIME,
     updated_at  DATETIME,
@@ -69,7 +69,7 @@ CREATE TABLE comments
     user_id           BIGINT,
     post_id           BIGINT,
     parent_comment_id BIGINT,
-    content           VARCHAR(255),
+    content           TEXT,
     created_at        DATETIME,
     updated_at        DATETIME,
 --                           is_hidden BIT(1),
@@ -82,7 +82,7 @@ CREATE TABLE post_reactions
     post_reaction_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id          BIGINT,
     post_id          BIGINT,
-    reaction_type    ENUM('LIKE', 'WOW', 'LOVE', 'SAD','ANGRY'),
+--     reaction_type    ENUM('LIKE', 'WOW', 'LOVE', 'SAD','ANGRY'),
     created_at       DATETIME,
     CONSTRAINT fk_post_reaction_user FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_post_reaction_post FOREIGN KEY (post_id) REFERENCES posts (post_id)
@@ -93,7 +93,7 @@ CREATE TABLE comment_reactions
     comment_reaction_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id             BIGINT,
     comment_id          BIGINT,
-    reaction_type       ENUM('LIKE', 'WOW', 'LOVE', 'SAD','ANGRY'),
+--     reaction_type       ENUM('LIKE', 'WOW', 'LOVE', 'SAD','ANGRY'),
     created_at          DATETIME,
     CONSTRAINT fk_comment_reaction_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     CONSTRAINT fk_comment_reaction_comment FOREIGN KEY (comment_id) REFERENCES comments (comment_id) ON DELETE CASCADE

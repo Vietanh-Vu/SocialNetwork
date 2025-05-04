@@ -25,9 +25,9 @@ public class PostReaction {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @Lob
-    @Column(name = "reaction_type")
-    private String reactionType;
+//    @Lob
+//    @Column(name = "reaction_type")
+//    private String reactionType;
 
     @Column(name = "created_at")
     private Instant createdAt;

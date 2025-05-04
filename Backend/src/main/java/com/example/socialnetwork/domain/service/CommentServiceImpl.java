@@ -15,6 +15,7 @@ import com.example.socialnetwork.domain.port.spi.*;
 import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.exception.custom.NotAllowException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
+import com.example.socialnetwork.infrastructure.rest_client.response.DetectCommentResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.pmml4s.model.Model;
@@ -44,6 +45,8 @@ public class CommentServiceImpl implements CommentServicePort {
     private Model model;
     private static final double SPAM_THRESHOLD = 0.6;
     private final ProblematicCommentPort problematicCommentPort;
+    private final GlobalConfigDatabasePort globalConfigDatabasePort;
+    private final CommentDetectionService commentDetectionService;
 
     @PostConstruct
     public void init()  {
@@ -56,22 +59,45 @@ public class CommentServiceImpl implements CommentServicePort {
     }
 
     private void isSpam(CommentDomain commentDomain) {
-        Map<String, Object> input = new HashMap<>();
-        input.put("free_text", commentDomain.getContent());
+        Integer startDetectComment = globalConfigDatabasePort.getStartDetectComment();
+        if (startDetectComment == 0) {
+            return;
+        }
 
-        Map<?, ?> results = model.predict(input);
-        double spamProbability = (double) results.get("probability(1)");
-        System.out.println(commentDomain.getContent() + " " + spamProbability);
-        if (spamProbability > SPAM_THRESHOLD) {
-            ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
+        Double hateSpeechThreshold = globalConfigDatabasePort.getHateSpeechThreshold();
+        Double thresholdToImportToProblematicComment = globalConfigDatabasePort.getThresholdToImportToProblematicComment();
+        DetectCommentResponse detectCommentResponse = commentDetectionService.detect(commentDomain.getContent());
+        if (!Objects.isNull(detectCommentResponse)) {
+            Double hateSpeechProbability = detectCommentResponse.getPrediction().getHateProbability();
+            if (hateSpeechProbability > thresholdToImportToProblematicComment) {
+                ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
                     .user(commentDomain.getUser())
                     .content(commentDomain.getContent())
                     .createdAt(Instant.now())
-                    .spamProbability(spamProbability)
+                    .spamProbability(hateSpeechProbability)
                     .build();
-            problematicCommentPort.createProblematicComment(problematicComment);
-            throw new NotAllowException("Your comment is considered as spam");
+                problematicCommentPort.createProblematicComment(problematicComment);
+            }
+            if (hateSpeechProbability > hateSpeechThreshold) {
+                throw new NotAllowException("Your comment is considered as spam");
+            }
         }
+//        Map<String, Object> input = new HashMap<>();
+//        input.put("free_text", commentDomain.getContent());
+//
+//        Map<?, ?> results = model.predict(input);
+//        double spamProbability = (double) results.get("probability(1)");
+//        System.out.println(commentDomain.getContent() + " " + spamProbability);
+//        if (spamProbability > SPAM_THRESHOLD) {
+//            ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
+//                    .user(commentDomain.getUser())
+//                    .content(commentDomain.getContent())
+//                    .createdAt(Instant.now())
+//                    .spamProbability(spamProbability)
+//                    .build();
+//            problematicCommentPort.createProblematicComment(problematicComment);
+//            throw new NotAllowException("Your comment is considered as spam");
+//        }
     }
 
     private void checkUserCommentAndUserPost(Long userId, Long postId) {

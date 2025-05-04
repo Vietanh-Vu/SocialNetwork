@@ -194,8 +194,14 @@ public class PostServiceImpl implements PostServicePort {
         List<Visibility> list = List.of(Visibility.PUBLIC, Visibility.FRIEND);
         Page<PostDomain> postOfFriends = postDatabasePort.getAllPostByFriends(pageable1, friendIds, list);
         List<PostDomain> newsFeed = postOfFriends.getContent().stream()
-                .sorted(Comparator.comparing((PostDomain post) -> closedFriends.contains(userDatabasePort.findById(post.getUserId())) && LocalDate.ofInstant(post.getCreatedAt(), ZoneId.of("Asia/Ho_Chi_Minh")).equals(LocalDate.now())).reversed())
-                .collect(Collectors.toList());
+            .sorted(Comparator
+                .comparing((PostDomain post) ->
+                    closedFriends.contains(userDatabasePort.findById(post.getUserId())) &&
+                        LocalDate.ofInstant(post.getCreatedAt(), ZoneId.of("Asia/Ho_Chi_Minh"))
+                            .equals(LocalDate.now())
+                ).reversed()
+            )
+            .collect(Collectors.toList());
         List<PostResponse> postResponses = postMapper.listDomainToResponse(newsFeed);
         Pageable pageable2 = PageRequest.of(page - 1, pageSize);
         int start = Math.min((int) pageable2.getOffset(), postResponses.size());

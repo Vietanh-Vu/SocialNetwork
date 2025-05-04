@@ -14,6 +14,6 @@ public class CommentReactionDomain {
     private Long id;
     private UserDomain user;
     private CommentDomain comment;
-    private String reactionType;
+//    private String reactionType;
     private Instant createdAt;
 }

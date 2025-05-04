@@ -28,7 +28,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
         "OR (r.userId = :friendId AND r.friendId = :userId)")
     Relationship findByUser_IdAndFriend_Id(@Param("userId") long userId, @Param("friendId") long friendId);
 
-    @EntityGraph(attributePaths = {"user"})
+//    @EntityGraph(attributePaths = {"user"})
     @Query("SELECT u FROM User u " +
         "INNER JOIN Relationship r ON r.userId = u.id OR r.friendId = u.id " +
         "WHERE r.relation = :relation " +

@@ -58,14 +58,14 @@ public class CommentReactionServiceImpl implements CommentReactionServicePort {
 
         CommentReactionDomain commentReactionDomainExist = commentReactionDatabasePort.findByUserIdAndCommentId(currentUserId, commentReactionDomain.getComment().getCommentId());
         if (commentReactionDomainExist != null ) {
-            if(!commentReactionDomainExist.getReactionType().equals(commentReactionDomain.getReactionType())){
-                commentReactionDomain.setId(commentReactionDomainExist.getId());
-                return commentReactionDatabasePort.updateCommentReaction(commentReactionDomain);
-            }else{
+//            if(!commentReactionDomainExist.getReactionType().equals(commentReactionDomain.getReactionType())){
+//                commentReactionDomain.setId(commentReactionDomainExist.getId());
+//                return commentReactionDatabasePort.updateCommentReaction(commentReactionDomain);
+//            }else{
                 this.deleteCommentReaction(commentReactionDomainExist.getId());
                 return null;
 //                throw new  ClientErrorException("Comment reaction already exist");
-            }
+//            }
         }else{
             RelationshipDomain relationshipDomainWithComment = relationshipDatabasePort.find(currentUserId, commentDomain.getUser().getId()).orElse(null);
             PostDomain postDomain = postDatabasePort.findById(commentDomain.getPost().getId());

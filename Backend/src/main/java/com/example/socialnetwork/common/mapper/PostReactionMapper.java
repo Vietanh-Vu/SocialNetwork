@@ -45,7 +45,7 @@ public interface PostReactionMapper {
     @Mapping(source = "postReactionDomain.id", target = "id")
     @Mapping(source = "postReactionDomain.userId", target = "userId")
     @Mapping(source = "postReactionDomain.postId", target = "postId")
-    @Mapping(source = "postReactionDomain.reactionType", target = "reactionType")
+//    @Mapping(source = "postReactionDomain.reactionType", target = "reactionType")
     @Mapping(source = "postReactionDomain.createdAt", target = "createdAt")
     @Mapping(source = "userDomain.username", target = "username")
     @Mapping(source = "userDomain.avatar", target = "avatar")

@@ -33,5 +33,5 @@ public interface RelationshipServicePort {
 
     Page<FriendResponse> getFriendSuggestions(int page, int pageSize);
 
-    Page<UserDomain> searchUser(int page, int pageSize, String keyWord);
+    Page<FriendResponse> searchUser(int page, int pageSize, String keyWord);
 }

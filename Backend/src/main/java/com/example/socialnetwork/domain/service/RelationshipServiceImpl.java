@@ -203,11 +203,18 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
     }
 
     @Override
-    public Page<UserDomain> searchUser(int page, int pageSize, String keyWord) {
+    public Page<FriendResponse> searchUser(int page, int pageSize, String keyWord) {
         long userId = SecurityUtil.getCurrentUserId();
         List<UserDomain> suggestionDomains = userDatabasePort.searchUser(keyWord);
-//        List<FriendResponse> friendRespons = customSuggestionMapper.userDomainsToSearchFriendResponses(suggestionDomains);
-        return getPage(page, pageSize, suggestionDomains);
+        List<Long> userIds = suggestionDomains.stream().map(UserDomain::getId).toList();
+
+        List<UserDomain> userDomains = new ArrayList<>();
+        for (Long userid: userIds) {
+            userDomains.add(userDatabasePort.findById(userid));
+        }
+
+        List<FriendResponse> friendRespons = customSuggestionMapper.userDomainsToSearchFriendResponses(userDomains);
+        return getPage(page, pageSize, friendRespons);
     }
 
     private void checkFriend(long friendId) {

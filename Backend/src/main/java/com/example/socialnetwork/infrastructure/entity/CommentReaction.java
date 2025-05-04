@@ -26,10 +26,10 @@ public class CommentReaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
     private Comment comment;
-
-    @Lob
-    @Column(name = "reaction_type")
-    private String reactionType;
+//
+//    @Lob
+//    @Column(name = "reaction_type")
+//    private String reactionType;
 
     @Column(name = "created_at")
     private Instant createdAt;

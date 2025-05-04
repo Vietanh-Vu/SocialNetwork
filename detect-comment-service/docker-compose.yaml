@@ -1,0 +1,25 @@
+version: '3.8'
+networks:
+  social-network:
+    driver: bridge
+services:
+  detect-comment-service:
+    container_name: detect-comment-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - ./hate_speech_model:/app/hate_speech_model
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
