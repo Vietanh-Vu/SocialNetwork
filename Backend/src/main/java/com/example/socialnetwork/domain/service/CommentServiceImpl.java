@@ -12,7 +12,6 @@ import com.example.socialnetwork.domain.port.api.CommentServicePort;
 import com.example.socialnetwork.domain.port.api.S3ServicePort;
 import com.example.socialnetwork.domain.port.api.StorageServicePort;
 import com.example.socialnetwork.domain.port.spi.*;
-import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.exception.custom.NotAllowException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
 import com.example.socialnetwork.infrastructure.rest_client.response.DetectCommentResponse;
@@ -26,12 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentServicePort {
@@ -44,7 +39,7 @@ public class CommentServiceImpl implements CommentServicePort {
     private final S3ServicePort s3ServicePort;
     private Model model;
     private static final double SPAM_THRESHOLD = 0.6;
-    private final ProblematicCommentPort problematicCommentPort;
+    private final ProblematicCommentDatabasePort problematicCommentDatabasePort;
     private final GlobalConfigDatabasePort globalConfigDatabasePort;
     private final CommentDetectionService commentDetectionService;
 
@@ -76,7 +71,7 @@ public class CommentServiceImpl implements CommentServicePort {
                     .createdAt(Instant.now())
                     .spamProbability(hateSpeechProbability)
                     .build();
-                problematicCommentPort.createProblematicComment(problematicComment);
+                problematicCommentDatabasePort.createProblematicComment(problematicComment);
             }
             if (hateSpeechProbability > hateSpeechThreshold) {
                 throw new NotAllowException("Your comment is considered as spam");
@@ -88,7 +83,7 @@ public class CommentServiceImpl implements CommentServicePort {
                 .createdAt(Instant.now())
                 .spamProbability(-1.0)
                 .build();
-            problematicCommentPort.createProblematicComment(problematicComment);
+            problematicCommentDatabasePort.createProblematicComment(problematicComment);
         }
 //        Map<String, Object> input = new HashMap<>();
 //        input.put("free_text", commentDomain.getContent());

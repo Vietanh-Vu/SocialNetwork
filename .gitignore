@@ -148,4 +148,5 @@ dist/
 # Jupyter notebooks checkpoints (nếu dùng)
 .ipynb_checkpoints/
 
-.safetensors
+*.safetensors
+model.safetensors
