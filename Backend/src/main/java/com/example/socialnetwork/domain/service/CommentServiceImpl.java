@@ -81,6 +81,14 @@ public class CommentServiceImpl implements CommentServicePort {
             if (hateSpeechProbability > hateSpeechThreshold) {
                 throw new NotAllowException("Your comment is considered as spam");
             }
+        } else {
+            ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
+                .user(commentDomain.getUser())
+                .content(commentDomain.getContent())
+                .createdAt(Instant.now())
+                .spamProbability(-1.0)
+                .build();
+            problematicCommentPort.createProblematicComment(problematicComment);
         }
 //        Map<String, Object> input = new HashMap<>();
 //        input.put("free_text", commentDomain.getContent());
@@ -194,9 +202,9 @@ public class CommentServiceImpl implements CommentServicePort {
         }
 
         checkParentComment(userId, currentComment.getParentCommentId(), currentComment.getPost().getId());
-        isSpam(currentComment);
         currentComment.setContent(content);
         currentComment.setUpdatedAt(Instant.now());
+        isSpam(currentComment);
 
         //
 //        if(!isDelete){
