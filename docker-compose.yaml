@@ -45,7 +45,7 @@ services:
   detect-comment-service:
     container_name: detect-comment-service
     build:
-      context: .
+      context: detect-comment-service
       dockerfile: Dockerfile
     ports:
       - '5000:5000'

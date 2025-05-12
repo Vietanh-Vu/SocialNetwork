@@ -18,7 +18,7 @@ class Config:
     MODEL_PATH = os.getenv('MODEL_PATH', 'hate_speech_model')
 
     # Allowed origins for CORS
-    ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'http://localhost:8080,http://api-service:8080').split(',')
+    ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'http://api-service:8080,http://localhost:8080').split(',')
 
     # Allowed client IPs
-    ALLOWED_IPS = os.getenv('ALLOWED_IPS', '127.0.0.1,::1,172.20.0.1').split(',')
+    ALLOWED_IPS = os.getenv('ALLOWED_IPS', '127.0.0.1,::1,172.20.0.1,172.21.0.1').split(',')

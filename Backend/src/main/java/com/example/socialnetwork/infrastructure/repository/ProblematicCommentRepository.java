@@ -4,6 +4,7 @@ import com.example.socialnetwork.infrastructure.entity.ProblematicComment;
 import com.example.socialnetwork.infrastructure.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,12 +14,15 @@ import java.util.List;
 
 public interface ProblematicCommentRepository extends JpaRepository<ProblematicComment, Long> {
   // Find by spam probability range
+  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findBySpamProbabilityBetween(Double minProbability, Double maxProbability, Pageable pageable);
 
   // Find by date range
+  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findByCreatedAtBetween(Instant startDate, Instant endDate, Pageable pageable);
 
   // Find by both spam probability and date range
+  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findBySpamProbabilityBetweenAndCreatedAtBetween(
       Double minProbability, Double maxProbability,
       Instant startDate, Instant endDate,

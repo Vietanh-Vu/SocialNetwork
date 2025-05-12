@@ -1,0 +1,2 @@
+CREATE INDEX idx_problematic_comments_created_at ON problematic_comments (created_at);
+CREATE INDEX idx_problematic_comments_spam_probability ON problematic_comments (spam_probability);

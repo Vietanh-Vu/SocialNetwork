@@ -1,6 +1,7 @@
 package com.example.socialnetwork.application.controller;
 
 import com.example.socialnetwork.application.response.*;
+import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.port.api.GlobalConfigServicePort;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
@@ -33,6 +34,7 @@ public class AdminController extends BaseController {
 
   private final GlobalConfigServicePort globalConfigService;
   private final ProblematicCommentServicePort problematicCommentService;
+  private final ProblematicCommentMapper problematicCommentMapper;
 
   // Global Config endpoints
   @PreAuthorize("hasAuthority('ADMIN')")
@@ -83,7 +85,10 @@ public class AdminController extends BaseController {
     Page<ProblematicCommentDomain> comments = problematicCommentService.getFilteredProblematicComments(
         minProbability, maxProbability, startInstant, endInstant, page, pageSize, sortBy, sortDirection);
 
-    return buildResponse("Get problematic comments successfully", comments);
+    // Convert domain objects to flattened response objects
+    Page<ProblematicCommentResponse> responseComments = comments.map(problematicCommentMapper::toProblematicCommentResponse);
+
+    return buildResponse("Get problematic comments successfully", responseComments);
   }
 
   @PreAuthorize("hasAuthority('ADMIN')")
@@ -120,8 +125,11 @@ public class AdminController extends BaseController {
 
   @PreAuthorize("hasAuthority('ADMIN')")
   @GetMapping("/stats/monthly")
-  public ResponseEntity<ResultResponse> getMonthlyStats() {
-    MonthlyCommentResponse stats = problematicCommentService.getMonthlyCommentCounts();
+  public ResponseEntity<ResultResponse> getMonthlyStats(
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate
+  ) {
+    MonthlyCommentResponse stats = problematicCommentService.getMonthlyCommentCounts(startDate, endDate);
     return buildResponse("Get monthly stats successfully", stats);
   }
 

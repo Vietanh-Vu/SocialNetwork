@@ -25,7 +25,7 @@ public interface ProblematicCommentServicePort {
 
   WeeklyCommentResponse getWeeklyCommentCounts();
 
-  MonthlyCommentResponse getMonthlyCommentCounts();
+  MonthlyCommentResponse getMonthlyCommentCounts(Instant startDate, Instant endDate);
 
   TopViolatingUsersResponse getTopViolatingUsers(int limit);
 }

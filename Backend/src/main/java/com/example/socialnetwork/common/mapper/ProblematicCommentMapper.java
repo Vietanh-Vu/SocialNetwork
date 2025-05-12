@@ -1,5 +1,6 @@
 package com.example.socialnetwork.common.mapper;
 
+import com.example.socialnetwork.application.response.ProblematicCommentResponse;
 import com.example.socialnetwork.domain.model.CommentDomain;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.model.UserDomain;
@@ -17,6 +18,8 @@ public class ProblematicCommentMapper {
                 .id(entity.getId())
                 .user(UserDomain.builder()
                         .id(entity.getUser().getId())
+                        .username(entity.getUser().getUsername())
+                        .avatar(entity.getUser().getAvatar())
                         .build())
                 .content(entity.getContent())
                 .spamProbability(entity.getSpamProbability())
@@ -34,5 +37,16 @@ public class ProblematicCommentMapper {
                 .spamProbability(domain.getSpamProbability())
                 .createdAt(domain.getCreatedAt())
                 .build();
+    }
+
+    public ProblematicCommentResponse toProblematicCommentResponse(ProblematicCommentDomain domain) {
+        return ProblematicCommentResponse.builder()
+            .id(domain.getId())
+            .userId(domain.getUser().getId())
+            .username(domain.getUser().getUsername())
+            .userAvatar(domain.getUser().getAvatar())
+            .spamProbability(domain.getSpamProbability())
+            .createdAt(domain.getCreatedAt())
+            .build();
     }
 }

@@ -9,6 +9,7 @@ import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import com.example.socialnetwork.domain.model.UserDomain;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
 import com.example.socialnetwork.domain.port.spi.ProblematicCommentDatabasePort;
+import com.example.socialnetwork.exception.custom.ClientErrorException;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -187,14 +188,50 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   }
 
   @Override
-  public MonthlyCommentResponse getMonthlyCommentCounts() {
+  public MonthlyCommentResponse getMonthlyCommentCounts(Instant startDate, Instant endDate) {
     LocalDate today = LocalDate.now();
-    LocalDate startMonth = today.minusMonths(5).withDayOfMonth(1);
+    LocalDate endLocalDate;
+    LocalDate startLocalDate;
+    // If both dates are provided, use them
+    if (startDate != null && endDate != null) {
+      startLocalDate = startDate.atZone(ZoneId.systemDefault()).toLocalDate().withDayOfMonth(1);
+      endLocalDate = endDate.atZone(ZoneId.systemDefault()).toLocalDate();
+
+      if (endLocalDate.isBefore(startLocalDate)) {
+        throw new ClientErrorException("End date cannot be before start date");
+      }
+
+      if (endLocalDate.isAfter(today)) {
+        throw new ClientErrorException("End date cannot exceed the current month");
+      }
+
+      // Validate date range - maximum 6 months
+      LocalDate maxAllowedStartDate = endLocalDate.minusMonths(7).plusDays(1);
+      if (startLocalDate.isBefore(maxAllowedStartDate)) {
+        throw new ClientErrorException("Date range cannot exceed 6 months");
+      }
+    } else {
+      // Default to 6 months if no dates provided
+      endLocalDate = today;
+      startLocalDate = today.minusMonths(6).withDayOfMonth(1); // 6 months including current month
+    }
 
     List<MonthlyCommentResponse.MonthlyData> monthlyStats = new ArrayList<>();
-    for (int i = 0; i < 6; i++) {
-      LocalDate monthStart = startMonth.plusMonths(i);
+
+    // Calculate how many months between start and end dates
+    int monthsBetween = (int) (
+        endLocalDate.getYear() * 12 + endLocalDate.getMonthValue() -
+            (startLocalDate.getYear() * 12 + startLocalDate.getMonthValue())
+    );
+
+    for (int i = 0; i < monthsBetween; i++) {
+      LocalDate monthStart = startLocalDate.plusMonths(i);
       LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
+
+      // Don't go beyond the end date
+      if (monthStart.isAfter(endLocalDate)) {
+        break;
+      }
 
       Instant monthStartInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
       Instant monthEndInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
