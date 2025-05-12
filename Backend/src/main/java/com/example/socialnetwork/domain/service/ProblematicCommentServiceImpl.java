@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,12 +27,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,46 +72,110 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
 
   @Override
   public ByteArrayInputStream exportToExcel(Double minProbability, Double maxProbability) throws IOException {
-    Pageable pageable = PageRequest.of(0, 1000, Sort.by("createdAt").descending());
-    Page<ProblematicCommentDomain> comments;
-
-    if (minProbability != null && maxProbability != null) {
-      comments = problematicCommentPort.getProblematicCommentsByProbability(minProbability, maxProbability, pageable);
-    } else {
-      comments = problematicCommentPort.getAllProblematicComments(pageable);
+    // Tính toán 12 tháng gần nhất
+    LocalDate today = LocalDate.now();
+    List<YearMonth> months = new ArrayList<>();
+    for (int i = 0; i < 12; i++) {
+      months.add(YearMonth.from(today.minusMonths(i)));
     }
 
-    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = workbook.createSheet("Problematic Comments");
+    // Workbook chung cho tất cả các sheet
+    XSSFWorkbook sharedWorkbook = new XSSFWorkbook();
 
-      // Header row
-      Row headerRow = sheet.createRow(0);
-      headerRow.createCell(0).setCellValue("ID");
-      headerRow.createCell(1).setCellValue("User ID");
-      headerRow.createCell(2).setCellValue("Content");
-      headerRow.createCell(3).setCellValue("Probability");
-      headerRow.createCell(4).setCellValue("Created Date");
+    // Tạo thread pool
+    ExecutorService executor = Executors.newFixedThreadPool(
+        Math.min(months.size(), Runtime.getRuntime().availableProcessors() * 2)
+    );
 
-      // Data rows
-      int rowIdx = 1;
-      for (ProblematicCommentDomain comment : comments.getContent()) {
-        Row row = sheet.createRow(rowIdx++);
-        row.createCell(0).setCellValue(comment.getId());
-        row.createCell(1).setCellValue(comment.getUser().getId());
-        row.createCell(2).setCellValue(comment.getContent());
-        row.createCell(3).setCellValue(comment.getSpamProbability());
-        row.createCell(4).setCellValue(comment.getCreatedAt().toString());
+    try {
+      List<Future<Void>> futures = new ArrayList<>();
+
+      for (YearMonth yearMonth : months) {
+        Future<Void> future = executor.submit(() -> {
+          LocalDate monthStart = yearMonth.atDay(1);
+          LocalDate monthEnd = yearMonth.atEndOfMonth();
+          Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
+          Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+          // Lấy dữ liệu từng tháng
+          List<ProblematicCommentDomain> monthData = new ArrayList<>();
+          int pageSize = 1000;
+          int pageNumber = 0;
+          Page<ProblematicCommentDomain> commentsPage;
+
+          do {
+            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").ascending());
+
+            commentsPage = (minProbability != null && maxProbability != null)
+                ? problematicCommentPort.getProblematicCommentsByProbabilityAndDateRange(
+                minProbability, maxProbability, startInstant, endInstant, pageable)
+                : problematicCommentPort.getProblematicCommentsByDateRange(
+                startInstant, endInstant, pageable);
+
+            monthData.addAll(commentsPage.getContent());
+            pageNumber++;
+          } while (commentsPage.hasNext());
+
+          if (monthData.isEmpty()) return null;
+
+          // Ghi vào workbook dùng synchronized để thread-safe
+          synchronized (sharedWorkbook) {
+            String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
+            Sheet sheet = sharedWorkbook.createSheet(sheetName);
+
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("id");
+            headerRow.createCell(1).setCellValue("user_id");
+            headerRow.createCell(2).setCellValue("content");
+            headerRow.createCell(3).setCellValue("probability");
+            headerRow.createCell(4).setCellValue("created_at");
+
+            int rowIdx = 1;
+            for (ProblematicCommentDomain comment : monthData) {
+              Row row = sheet.createRow(rowIdx++);
+              row.createCell(0).setCellValue(comment.getId());
+              row.createCell(1).setCellValue(comment.getUser().getId());
+              row.createCell(2).setCellValue(comment.getContent());
+              row.createCell(3).setCellValue(comment.getSpamProbability());
+              row.createCell(4).setCellValue(comment.getCreatedAt().toString());
+            }
+          }
+
+          return null;
+        });
+
+        futures.add(future);
       }
 
-      // Resize columns
-      for (int i = 0; i < 5; i++) {
-        sheet.autoSizeColumn(i);
+      // Đợi tất cả các task hoàn thành
+      for (Future<Void> future : futures) {
+        future.get();
       }
 
-      workbook.write(out);
-      return new ByteArrayInputStream(out.toByteArray());
+      // Ghi workbook vào ByteArrayOutputStream để trả về
+      try (ByteArrayOutputStream finalOut = new ByteArrayOutputStream()) {
+        sharedWorkbook.write(finalOut);
+        return new ByteArrayInputStream(finalOut.toByteArray());
+      }
+
+    } catch (Exception e) {
+      throw new IOException("Error during export: " + e.getMessage(), e);
+    } finally {
+      executor.shutdown();
+      try {
+        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+          executor.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+
+      sharedWorkbook.close(); // Đóng workbook
     }
   }
+
+
 
   @Override
   public DashboardStatResponse getDashboardStats() {
@@ -132,7 +199,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     Long totalCount = problematicCommentPort.countByDateRange(Instant.EPOCH, endOfToday);
 
     // Top 5 violators
-    List<TopViolatingUserDomain> topViolators = problematicCommentPort.getTopViolatingUsers(5);
+    List<TopViolatingUserDomain> topViolators = problematicCommentPort.getTopViolatingUsers(10);
 
     // Convert to response format
     List<DashboardStatResponse.TopViolatorResponse> topViolatorsResponse = topViolators.stream()
@@ -161,10 +228,10 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   @Override
   public WeeklyCommentResponse getWeeklyCommentCounts() {
     LocalDate today = LocalDate.now();
-    LocalDate startDate = today.minusWeeks(4).with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+    LocalDate startDate = today.minusWeeks(7).with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
 
     List<WeeklyCommentResponse.WeeklyData> weeklyStats = new ArrayList<>();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 7; i++) {
       LocalDate weekStart = startDate.plusWeeks(i);
       LocalDate weekEnd = weekStart.plusDays(6);
 
@@ -213,16 +280,15 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     } else {
       // Default to 6 months if no dates provided
       endLocalDate = today;
-      startLocalDate = today.minusMonths(6).withDayOfMonth(1); // 6 months including current month
+      startLocalDate = today.minusMonths(12).withDayOfMonth(1); // 6 months including current month
     }
 
     List<MonthlyCommentResponse.MonthlyData> monthlyStats = new ArrayList<>();
 
     // Calculate how many months between start and end dates
-    int monthsBetween = (int) (
+    int monthsBetween =
         endLocalDate.getYear() * 12 + endLocalDate.getMonthValue() -
-            (startLocalDate.getYear() * 12 + startLocalDate.getMonthValue())
-    );
+            (startLocalDate.getYear() * 12 + startLocalDate.getMonthValue());
 
     for (int i = 0; i < monthsBetween; i++) {
       LocalDate monthStart = startLocalDate.plusMonths(i);

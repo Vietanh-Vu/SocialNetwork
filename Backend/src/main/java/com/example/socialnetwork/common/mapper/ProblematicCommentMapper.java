@@ -45,6 +45,7 @@ public class ProblematicCommentMapper {
             .userId(domain.getUser().getId())
             .username(domain.getUser().getUsername())
             .userAvatar(domain.getUser().getAvatar())
+            .content(domain.getContent())
             .spamProbability(domain.getSpamProbability())
             .createdAt(domain.getCreatedAt())
             .build();

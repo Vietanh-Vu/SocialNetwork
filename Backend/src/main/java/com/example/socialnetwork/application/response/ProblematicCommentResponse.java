@@ -12,6 +12,7 @@ public class ProblematicCommentResponse {
   private Long userId;
   private String username;
   private String userAvatar;
+  private String content;
   private Double spamProbability;
   private Instant createdAt;
 }
