@@ -10,7 +10,7 @@ BEGIN
     DECLARE max_day INT;
     DECLARE created_date DATE;
 
-    WHILE i < 10000 DO
+    WHILE i < 1000000 DO
         -- Chọn tháng ngẫu nhiên từ 1 đến 12
         SET rand_month = FLOOR(RAND() * 12) + 1;
 

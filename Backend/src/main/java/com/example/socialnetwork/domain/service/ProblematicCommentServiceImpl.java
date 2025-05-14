@@ -9,6 +9,7 @@ import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import com.example.socialnetwork.domain.model.UserDomain;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
 import com.example.socialnetwork.domain.port.spi.ProblematicCommentDatabasePort;
+import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
 import com.example.socialnetwork.exception.custom.ClientErrorException;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
@@ -30,17 +31,16 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProblematicCommentServiceImpl implements ProblematicCommentServicePort {
   private final ProblematicCommentDatabasePort problematicCommentPort;
+  private final UserDatabasePort userDatabasePort;
 
   @Override
   public Page<ProblematicCommentDomain> getFilteredProblematicComments(
@@ -58,16 +58,20 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
 
     // Apply filters based on what parameters are provided
+    Page<ProblematicCommentDomain> result;
     if (minProbability != null && maxProbability != null && startDate != null && endDate != null) {
-      return problematicCommentPort.getProblematicCommentsByProbabilityAndDateRange(
+      result = problematicCommentPort.getProblematicCommentsByProbabilityAndDateRange(
           minProbability, maxProbability, startDate, endDate, pageable);
     } else if (minProbability != null && maxProbability != null) {
-      return problematicCommentPort.getProblematicCommentsByProbability(minProbability, maxProbability, pageable);
+      result = problematicCommentPort.getProblematicCommentsByProbability(minProbability, maxProbability, pageable);
     } else if (startDate != null && endDate != null) {
-      return problematicCommentPort.getProblematicCommentsByDateRange(startDate, endDate, pageable);
+      result = problematicCommentPort.getProblematicCommentsByDateRange(startDate, endDate, pageable);
     } else {
-      return problematicCommentPort.getAllProblematicComments(pageable);
+      result = problematicCommentPort.getAllProblematicComments(pageable);
     }
+
+    this.enrichUserDomain(result);
+    return result;
   }
 
   @Override
@@ -99,7 +103,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
 
           // Lấy dữ liệu từng tháng
           List<ProblematicCommentDomain> monthData = new ArrayList<>();
-          int pageSize = 1000;
+          int pageSize = 10000;
           int pageNumber = 0;
           Page<ProblematicCommentDomain> commentsPage;
 
@@ -338,5 +342,30 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     return TopViolatingUsersResponse.builder()
         .violators(violators)
         .build();
+  }
+
+  private void enrichUserDomain(Page<ProblematicCommentDomain> comments) {
+    Set<Long> userIds = comments.getContent().stream()
+        .map(comment -> comment.getUser().getId())
+        .collect(Collectors.toSet());
+
+    List<UserDomain> users = userDatabasePort.findAllByIds(new ArrayList<>(userIds));
+
+    Map<Long, UserDomain> userMap = users.stream()
+        .collect(Collectors.toMap(UserDomain::getId, Function.identity()));
+
+    // 4. Enrich each comment with complete user information
+    comments.getContent().forEach(comment -> {
+      Long userId = comment.getUser().getId();
+      if (userMap.containsKey(userId)) {
+        UserDomain user = userMap.get(userId);
+        UserDomain enrichedUser = UserDomain.builder()
+            .id(user.getId())
+            .username(user.getUsername())
+            .avatar(user.getAvatar())
+            .build();
+        comment.setUser(enrichedUser);
+      }
+    });
   }
 }

@@ -35,7 +35,7 @@ BEGIN
             SET @username = CONCAT_WS(' ',@first_name,@last_name);
             SET @random_number = FLOOR(RAND() * 9999);
         -- Generate email from username (replace spaces with periods)
-            SET @email = CONCAT(LOWER(REPLACE(@username,' ','.')),@random_number,'@example.com');
+            SET @email = CONCAT(LOWER(REPLACE(@username,' ','.')),@random_number,'@gmail.com');
 
 INSERT INTO users (username,email,password,first_name,last_name,gender,visibility,role_id,bio,location,work,education,created_at,updated_at,avatar,background_image,date_of_birth,is_email_verified)
 VALUES (
@@ -92,8 +92,6 @@ BEGIN
     DECLARE parent_comment_id BIGINT;
     DECLARE post_created_at DATETIME;
     DECLARE post_user_id INT;
-    DECLARE can_tag BOOLEAN;
-    DECLARE tag_user_id INT;
     DECLARE comment_image VARCHAR(255);
     DECLARE is_parent_comment BOOLEAN;
 
@@ -194,20 +192,6 @@ BEGIN
             );
             SET k = k + 1;
         END WHILE;
-
-        -- Tag another user (only if they are friends)
-        SET can_tag = 0;
-        SET tag_user_id = FLOOR(1 + RAND() * 53);
-
-        -- Check if the selected user is a friend
-        SELECT COUNT(*) INTO can_tag
-        FROM relationships
-        WHERE user_id = post_user_id AND friend_id = tag_user_id AND relation = 'FRIEND';
-
-        IF can_tag > 0 AND tag_user_id != post_user_id THEN
-                    INSERT INTO tags (tagged_user_id,post_id,tagged_by_user_id,created_at)
-                    VALUES (tag_user_id,post_id_var,post_user_id,DATE_ADD(post_created_at,INTERVAL FLOOR(RAND() * 24 * 60) MINUTE));
-        END IF;
 
         SET i = i + 1;
     END WHILE;

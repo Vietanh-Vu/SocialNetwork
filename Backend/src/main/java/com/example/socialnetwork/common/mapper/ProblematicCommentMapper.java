@@ -18,8 +18,6 @@ public class ProblematicCommentMapper {
                 .id(entity.getId())
                 .user(UserDomain.builder()
                         .id(entity.getUser().getId())
-                        .username(entity.getUser().getUsername())
-                        .avatar(entity.getUser().getAvatar())
                         .build())
                 .content(entity.getContent())
                 .spamProbability(entity.getSpamProbability())

@@ -10,3 +10,10 @@ CREATE TABLE global_configs
 );
 
 CREATE INDEX idx_code ON global_configs(code);
+
+-- Insert the three global configs
+INSERT INTO global_configs (name, code, `desc`, created)
+VALUES
+    ('Hate Speech Threshold', 'hate_speech_threshold', '0.7', CURRENT_TIMESTAMP),
+    ('Threshold to Import to Problematic Comment', 'threshold_to_import_to_problematic_comment', '0.5', CURRENT_TIMESTAMP),
+    ('Start Detect Comment', 'start_detect_comment', '1', CURRENT_TIMESTAMP);

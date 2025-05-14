@@ -209,7 +209,7 @@ function PostForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <SearchTag onUserClick={handleUserClick}/>
+                                {/*<SearchTag onUserClick={handleUserClick}/>*/}
                                 <div className="flex justify-end gap-2">
                                     <Button type="submit">Create Post</Button>
                                 </div>

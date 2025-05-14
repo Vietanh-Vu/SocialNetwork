@@ -99,23 +99,11 @@ CREATE TABLE comment_reactions
     CONSTRAINT fk_comment_reaction_comment FOREIGN KEY (comment_id) REFERENCES comments (comment_id) ON DELETE CASCADE
 );
 
-CREATE TABLE tags
-(
-    tag_id            BIGINT PRIMARY KEY AUTO_INCREMENT,
-    tagged_user_id    BIGINT,
-    post_id           BIGINT,
-    tagged_by_user_id BIGINT,
-    created_at        DATETIME,
-    CONSTRAINT fk_tagged_user FOREIGN KEY (tagged_user_id) REFERENCES users (user_id),
-    CONSTRAINT fk_tagged_by_user FOREIGN KEY (tagged_by_user_id) REFERENCES users (user_id),
-    CONSTRAINT fk_tag_post FOREIGN KEY (post_id) REFERENCES posts (post_id)
-);
-
 CREATE TABLE problematic_comments
 (
     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id    BIGINT,
-    content    VARCHAR(255),
+    content    TEXT,
     spam_probability DOUBLE,
     created_at DATETIME,
     CONSTRAINT fk_problematic_comments_users FOREIGN KEY (user_id) REFERENCES users (user_id)

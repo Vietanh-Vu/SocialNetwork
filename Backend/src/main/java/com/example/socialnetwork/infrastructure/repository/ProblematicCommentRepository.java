@@ -13,29 +13,20 @@ import java.time.Instant;
 import java.util.List;
 
 public interface ProblematicCommentRepository extends JpaRepository<ProblematicComment, Long> {
-  // Find by spam probability range
-  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findBySpamProbabilityBetween(Double minProbability, Double maxProbability, Pageable pageable);
 
-  // Find by date range
-  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findByCreatedAtBetween(Instant startDate, Instant endDate, Pageable pageable);
 
-  // Find by both spam probability and date range
-  @EntityGraph(attributePaths = {"user"})
   Page<ProblematicComment> findBySpamProbabilityBetweenAndCreatedAtBetween(
       Double minProbability, Double maxProbability,
       Instant startDate, Instant endDate,
       Pageable pageable);
 
-  // Count comments created by time period (for dashboard stats)
   @Query("SELECT COUNT(pc) FROM ProblematicComment pc WHERE pc.createdAt >= :startDate AND pc.createdAt <= :endDate")
   Long countByDateRange(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
 
-  // Find top users with most problematic comments
   @Query("SELECT pc.user, COUNT(pc) FROM ProblematicComment pc GROUP BY pc.user ORDER BY COUNT(pc) DESC")
   List<Object[]> findTopViolatingUsers(Pageable pageable);
 
-  // Count by user
   Long countByUser(User user);
 }

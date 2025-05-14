@@ -20,4 +20,5 @@ public interface UserDatabasePort {
     void updatePassword(Long userId, String password);
     List<UserDomain> searchUser(String keyword);
     List<UserDomain> searchFriend(Long userId, String keyword);
+    List<UserDomain> findAllByIds(List<Long> userIds);
 }

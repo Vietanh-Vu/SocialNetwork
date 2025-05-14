@@ -147,4 +147,10 @@ public class UserDatabaseAdapter implements UserDatabasePort {
         });
         return userDomains;
     }
+
+    @Override
+    public List<UserDomain> findAllByIds(List<Long> userIds) {
+        List<User> users = userRepository.findAllByIdIn(userIds);
+        return userMapper.toUserDomains(users);
+    }
 }
