@@ -1,11 +1,14 @@
 package com.example.socialnetwork.application.controller;
 
+import com.example.socialnetwork.application.request.ConfigCreateRequest;
+import com.example.socialnetwork.application.request.ConfigUpdateRequest;
 import com.example.socialnetwork.application.response.*;
 import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.port.api.GlobalConfigServicePort;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
 import com.example.socialnetwork.infrastructure.entity.GlobalConfig;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -59,9 +62,21 @@ public class AdminController extends BaseController {
   @PutMapping("/configs/{code}")
   public ResponseEntity<ResultResponse> updateConfig(
       @PathVariable String code,
-      @RequestParam String value) {
-    GlobalConfig config = globalConfigService.updateConfig(code, value);
+      @RequestBody ConfigUpdateRequest request) {
+    GlobalConfig config = globalConfigService.updateConfig(code, request.getValue());
     return buildResponse("Update config successfully", config);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @PostMapping("/configs")
+  public ResponseEntity<ResultResponse> createConfig(@Valid @RequestBody ConfigCreateRequest request) {
+    GlobalConfig configDomain = new GlobalConfig();
+    configDomain.setName(request.getName());
+    configDomain.setCode(request.getCode());
+    configDomain.setDesc(request.getValue());
+
+    GlobalConfig config = globalConfigService.createConfig(configDomain);
+    return buildResponse("Config created successfully", config);
   }
 
   // Problematic Comment endpoints

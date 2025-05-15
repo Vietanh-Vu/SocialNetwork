@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -75,6 +76,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   }
 
   @Override
+  @Transactional(readOnly = true)
   public ByteArrayInputStream exportToExcel(Double minProbability, Double maxProbability) throws IOException {
     // Tính toán 12 tháng gần nhất
     LocalDate today = LocalDate.now();
@@ -83,8 +85,9 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
       months.add(YearMonth.from(today.minusMonths(i)));
     }
 
-    // Workbook chung cho tất cả các sheet
-    XSSFWorkbook sharedWorkbook = new XSSFWorkbook();
+    // Workbook chung cho tất cả các sheet, sử dụng SXSSFWorkbook để tối ưu bộ nhớ
+    SXSSFWorkbook sharedWorkbook = new SXSSFWorkbook(100);
+    sharedWorkbook.setCompressTempFiles(true);
 
     // Tạo thread pool
     ExecutorService executor = Executors.newFixedThreadPool(
@@ -94,6 +97,22 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     try {
       List<Future<Void>> futures = new ArrayList<>();
 
+      // Tạo các sheet trước để tránh xung đột khi truy cập đồng thời
+      Map<String, Sheet> sheets = new HashMap<>();
+      for (YearMonth yearMonth : months) {
+        String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
+        Sheet sheet = sharedWorkbook.createSheet(sheetName);
+        
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("id");
+        headerRow.createCell(1).setCellValue("user_id");
+        headerRow.createCell(2).setCellValue("content");
+        headerRow.createCell(3).setCellValue("probability");
+        headerRow.createCell(4).setCellValue("created_at");
+        
+        sheets.put(sheetName, sheet);
+      }
+
       for (YearMonth yearMonth : months) {
         Future<Void> future = executor.submit(() -> {
           LocalDate monthStart = yearMonth.atDay(1);
@@ -101,47 +120,48 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
           Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
           Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-          // Lấy dữ liệu từng tháng
-          List<ProblematicCommentDomain> monthData = new ArrayList<>();
-          int pageSize = 10000;
+          String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
+          Sheet sheet = sheets.get(sheetName);
+          
+          // Chuẩn bị tham số truy vấn
+          int pageSize = 100000;
           int pageNumber = 0;
-          Page<ProblematicCommentDomain> commentsPage;
-
-          do {
+          int rowIdx = 1;
+          
+          // Stream data trực tiếp vào Excel
+          boolean hasMoreData = true;
+          
+          while (hasMoreData) {
             Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").ascending());
 
-            commentsPage = (minProbability != null && maxProbability != null)
+            Page<ProblematicCommentDomain> commentsPage = (minProbability != null && maxProbability != null)
                 ? problematicCommentPort.getProblematicCommentsByProbabilityAndDateRange(
-                minProbability, maxProbability, startInstant, endInstant, pageable)
+                    minProbability, maxProbability, startInstant, endInstant, pageable)
                 : problematicCommentPort.getProblematicCommentsByDateRange(
-                startInstant, endInstant, pageable);
-
-            monthData.addAll(commentsPage.getContent());
-            pageNumber++;
-          } while (commentsPage.hasNext());
-
-          if (monthData.isEmpty()) return null;
-
-          // Ghi vào workbook dùng synchronized để thread-safe
-          synchronized (sharedWorkbook) {
-            String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
-            Sheet sheet = sharedWorkbook.createSheet(sheetName);
-
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("id");
-            headerRow.createCell(1).setCellValue("user_id");
-            headerRow.createCell(2).setCellValue("content");
-            headerRow.createCell(3).setCellValue("probability");
-            headerRow.createCell(4).setCellValue("created_at");
-
-            int rowIdx = 1;
-            for (ProblematicCommentDomain comment : monthData) {
+                    startInstant, endInstant, pageable);
+            
+            // Kiểm tra nếu không có dữ liệu, thoát vòng lặp
+            if (commentsPage.isEmpty()) {
+              break;
+            }
+            
+            // Ghi từng comment vào sheet
+            for (ProblematicCommentDomain comment : commentsPage.getContent()) {
               Row row = sheet.createRow(rowIdx++);
               row.createCell(0).setCellValue(comment.getId());
               row.createCell(1).setCellValue(comment.getUser().getId());
               row.createCell(2).setCellValue(comment.getContent());
               row.createCell(3).setCellValue(comment.getSpamProbability());
               row.createCell(4).setCellValue(comment.getCreatedAt().toString());
+            }
+            
+            hasMoreData = commentsPage.hasNext();
+            pageNumber++;
+            
+            // Gợi ý GC dọn dẹp để giải phóng bộ nhớ
+            commentsPage = null;
+            if (pageNumber % 10 == 0) {
+              System.gc();
             }
           }
 
@@ -175,11 +195,11 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
         Thread.currentThread().interrupt();
       }
 
-      sharedWorkbook.close(); // Đóng workbook
+      // Dọn dẹp tài nguyên tạm thời của SXSSFWorkbook
+      sharedWorkbook.dispose();
+      sharedWorkbook.close();
     }
   }
-
-
 
   @Override
   public DashboardStatResponse getDashboardStats() {
