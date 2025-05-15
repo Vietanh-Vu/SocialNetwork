@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -76,7 +77,6 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   }
 
   @Override
-  @Transactional(readOnly = true)
   public ByteArrayInputStream exportToExcel(Double minProbability, Double maxProbability) throws IOException {
     // Tính toán 12 tháng gần nhất
     LocalDate today = LocalDate.now();
@@ -89,91 +89,56 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     SXSSFWorkbook sharedWorkbook = new SXSSFWorkbook(100);
     sharedWorkbook.setCompressTempFiles(true);
 
-    // Tạo thread pool
-    ExecutorService executor = Executors.newFixedThreadPool(
-        Math.min(months.size(), Runtime.getRuntime().availableProcessors() * 2)
-    );
-
     try {
-      List<Future<Void>> futures = new ArrayList<>();
-
-      // Tạo các sheet trước để tránh xung đột khi truy cập đồng thời
+      // Tạo các sheet và header trước
       Map<String, Sheet> sheets = new HashMap<>();
       for (YearMonth yearMonth : months) {
         String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
         Sheet sheet = sharedWorkbook.createSheet(sheetName);
-        
+
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("id");
         headerRow.createCell(1).setCellValue("user_id");
-        headerRow.createCell(2).setCellValue("content");
-        headerRow.createCell(3).setCellValue("probability");
-        headerRow.createCell(4).setCellValue("created_at");
-        
+        headerRow.createCell(2).setCellValue("username");
+        headerRow.createCell(3).setCellValue("content");
+        headerRow.createCell(4).setCellValue("probability");
+        headerRow.createCell(5).setCellValue("created_at");
+
         sheets.put(sheetName, sheet);
       }
 
+      // Xử lý cho từng tháng bằng JDBC stream
       for (YearMonth yearMonth : months) {
-        Future<Void> future = executor.submit(() -> {
-          LocalDate monthStart = yearMonth.atDay(1);
-          LocalDate monthEnd = yearMonth.atEndOfMonth();
-          Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
-          Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        LocalDate monthStart = yearMonth.atDay(1);
+        LocalDate monthEnd = yearMonth.atEndOfMonth();
+        Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-          String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
-          Sheet sheet = sheets.get(sheetName);
-          
-          // Chuẩn bị tham số truy vấn
-          int pageSize = 100000;
-          int pageNumber = 0;
-          int rowIdx = 1;
-          
-          // Stream data trực tiếp vào Excel
-          boolean hasMoreData = true;
-          
-          while (hasMoreData) {
-            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").ascending());
+        String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
+        Sheet sheet = sheets.get(sheetName);
 
-            Page<ProblematicCommentDomain> commentsPage = (minProbability != null && maxProbability != null)
-                ? problematicCommentPort.getProblematicCommentsByProbabilityAndDateRange(
-                    minProbability, maxProbability, startInstant, endInstant, pageable)
-                : problematicCommentPort.getProblematicCommentsByDateRange(
-                    startInstant, endInstant, pageable);
-            
-            // Kiểm tra nếu không có dữ liệu, thoát vòng lặp
-            if (commentsPage.isEmpty()) {
-              break;
+        // Theo dõi số hàng trong sheet
+        final int[] rowIdx = {1};
+
+        // Sử dụng JDBC stream trực tiếp
+        problematicCommentPort.streamProblematicCommentsByProbabilityAndDateRange(
+            minProbability, maxProbability, startInstant, endInstant,
+            rs -> {
+              try {
+                while (rs.next()) {
+                  Row row = sheet.createRow(rowIdx[0]++);
+                  row.createCell(0).setCellValue(rs.getLong("id"));
+                  row.createCell(1).setCellValue(rs.getLong("user_id"));
+                  row.createCell(2).setCellValue(rs.getString("content"));
+                  row.createCell(3).setCellValue(rs.getDouble("spam_probability"));
+                  row.createCell(4).setCellValue(rs.getTimestamp("created_at").toString());
+                }
+              } catch (SQLException e) {
+                throw new RuntimeException("Error processing result set", e);
+              }
+              return null;
             }
-            
-            // Ghi từng comment vào sheet
-            for (ProblematicCommentDomain comment : commentsPage.getContent()) {
-              Row row = sheet.createRow(rowIdx++);
-              row.createCell(0).setCellValue(comment.getId());
-              row.createCell(1).setCellValue(comment.getUser().getId());
-              row.createCell(2).setCellValue(comment.getContent());
-              row.createCell(3).setCellValue(comment.getSpamProbability());
-              row.createCell(4).setCellValue(comment.getCreatedAt().toString());
-            }
-            
-            hasMoreData = commentsPage.hasNext();
-            pageNumber++;
-            
-            // Gợi ý GC dọn dẹp để giải phóng bộ nhớ
-            commentsPage = null;
-            if (pageNumber % 10 == 0) {
-              System.gc();
-            }
-          }
-
-          return null;
-        });
-
-        futures.add(future);
-      }
-
-      // Đợi tất cả các task hoàn thành
-      for (Future<Void> future : futures) {
-        future.get();
+        );
       }
 
       // Ghi workbook vào ByteArrayOutputStream để trả về
@@ -181,20 +146,9 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
         sharedWorkbook.write(finalOut);
         return new ByteArrayInputStream(finalOut.toByteArray());
       }
-
     } catch (Exception e) {
       throw new IOException("Error during export: " + e.getMessage(), e);
     } finally {
-      executor.shutdown();
-      try {
-        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-          executor.shutdownNow();
-        }
-      } catch (InterruptedException e) {
-        executor.shutdownNow();
-        Thread.currentThread().interrupt();
-      }
-
       // Dọn dẹp tài nguyên tạm thời của SXSSFWorkbook
       sharedWorkbook.dispose();
       sharedWorkbook.close();

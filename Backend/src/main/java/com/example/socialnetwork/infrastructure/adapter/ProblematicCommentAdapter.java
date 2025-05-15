@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class ProblematicCommentAdapter implements ProblematicCommentDatabasePort
     private final ProblematicCommentRepository problematicCommentRepository;
     private final ProblematicCommentMapper problematicCommentMapper;
     private final UserMapper userMapper;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void createProblematicComment(ProblematicCommentDomain comment) {
@@ -61,6 +64,24 @@ public class ProblematicCommentAdapter implements ProblematicCommentDatabasePort
         return problematicCommentRepository.findBySpamProbabilityBetweenAndCreatedAtBetween(
                 minProbability, maxProbability, startDate, endDate, pageable)
             .map(problematicCommentMapper::problematicCommentEntityToProblematicCommentDomain);
+    }
+
+    @Override
+    public void streamProblematicCommentsByProbabilityAndDateRange(
+        Double minProbability,
+        Double maxProbability,
+        Instant startDate,
+        Instant endDate,
+        ResultSetExtractor<Void> resultSetExtractor) {
+        String sql = "SELECT *" +
+            "FROM problematic_comments pc " +
+            "WHERE pc.spam_probability BETWEEN ? AND ? " +
+            "AND pc.created_at BETWEEN ? AND ? " +
+            "ORDER BY pc.created_at ASC";
+
+        jdbcTemplate.query(sql,
+            new Object[]{minProbability, maxProbability, startDate, endDate},
+            resultSetExtractor);
     }
 
     @Override

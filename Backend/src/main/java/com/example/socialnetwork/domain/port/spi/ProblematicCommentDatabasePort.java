@@ -4,6 +4,7 @@ import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +26,11 @@ public interface ProblematicCommentDatabasePort {
         Double minProbability, Double maxProbability,
         Instant startDate, Instant endDate,
         Pageable pageable);
+
+    void streamProblematicCommentsByProbabilityAndDateRange(
+        Double minProbability, Double maxProbability,
+        Instant startDate, Instant endDate,
+        ResultSetExtractor<Void> resultSetExtractor);
 
     // Get count by date range (weekly/monthly)
     Long countByDateRange(Instant startDate, Instant endDate);
