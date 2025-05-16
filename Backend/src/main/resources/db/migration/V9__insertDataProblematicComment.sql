@@ -6,7 +6,7 @@ BEGIN
     DECLARE rand_days_ago INT;
     DECLARE created_date DATE;
 
-    WHILE i < 1000000 DO
+    WHILE i < 10000000 DO
         -- Chọn ngẫu nhiên số ngày lùi từ hiện tại (0 đến 364)
         SET rand_days_ago = FLOOR(RAND() * 365);
 

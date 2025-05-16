@@ -12,6 +12,7 @@ import com.example.socialnetwork.domain.port.spi.ProblematicCommentDatabasePort;
 import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
 import com.example.socialnetwork.exception.custom.ClientErrorException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProblematicCommentServiceImpl implements ProblematicCommentServicePort {
   private final ProblematicCommentDatabasePort problematicCommentPort;
   private final UserDatabasePort userDatabasePort;
@@ -78,6 +80,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
 
   @Override
   public ByteArrayInputStream exportToExcel(Double minProbability, Double maxProbability) throws IOException {
+    log.info(">>> [ProblematicCommentService] exportToExcel: Starting Excel export process with minProbability={}, maxProbability={}", minProbability, maxProbability);
     // Tính toán 12 tháng gần nhất
     LocalDate today = LocalDate.now();
     List<YearMonth> months = new ArrayList<>();
@@ -88,6 +91,11 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
     // Workbook chung cho tất cả các sheet, sử dụng SXSSFWorkbook để tối ưu bộ nhớ
     SXSSFWorkbook sharedWorkbook = new SXSSFWorkbook(100);
     sharedWorkbook.setCompressTempFiles(true);
+
+    // Tạo thread pool với số lượng thread bằng số tháng hoặc số CPU * 2 (lấy giá trị nhỏ hơn)
+    ExecutorService executor = Executors.newFixedThreadPool(
+        Math.min(months.size(), Runtime.getRuntime().availableProcessors() * 2)
+    );
 
     try {
       // Tạo các sheet và header trước
@@ -107,48 +115,80 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
         sheets.put(sheetName, sheet);
       }
 
-      // Xử lý cho từng tháng bằng JDBC stream
+      // Tạo danh sách các Future để theo dõi tiến trình
+      List<Future<?>> futures = new ArrayList<>();
+
+      // Xử lý song song cho từng tháng bằng JDBC stream
       for (YearMonth yearMonth : months) {
-        LocalDate monthStart = yearMonth.atDay(1);
-        LocalDate monthEnd = yearMonth.atEndOfMonth();
-        Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Future<?> future = executor.submit(() -> {
+          LocalDate monthStart = yearMonth.atDay(1);
+          LocalDate monthEnd = yearMonth.atEndOfMonth();
+          log.info(">>> [ProblematicCommentService] exportToExcel: Processing month {}-{}", yearMonth.getYear(), yearMonth.getMonthValue());
+          Instant startInstant = monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
+          Instant endInstant = monthEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-        String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
-        Sheet sheet = sheets.get(sheetName);
+          String sheetName = yearMonth.getYear() + "-" + String.format("%02d", yearMonth.getMonthValue());
+          Sheet sheet = sheets.get(sheetName);
 
-        // Theo dõi số hàng trong sheet
-        final int[] rowIdx = {1};
+          // Theo dõi số hàng trong sheet
+          final int[] rowIdx = {1};
 
-        // Sử dụng JDBC stream trực tiếp
-        problematicCommentPort.streamProblematicCommentsByProbabilityAndDateRange(
-            minProbability, maxProbability, startInstant, endInstant,
-            rs -> {
-              try {
-                while (rs.next()) {
-                  Row row = sheet.createRow(rowIdx[0]++);
-                  row.createCell(0).setCellValue(rs.getLong("id"));
-                  row.createCell(1).setCellValue(rs.getLong("user_id"));
-                  row.createCell(2).setCellValue(rs.getString("content"));
-                  row.createCell(3).setCellValue(rs.getDouble("spam_probability"));
-                  row.createCell(4).setCellValue(rs.getTimestamp("created_at").toString());
+          // Sử dụng JDBC stream trực tiếp
+          problematicCommentPort.streamProblematicCommentsByProbabilityAndDateRange(
+              minProbability, maxProbability, startInstant, endInstant,
+              rs -> {
+                try {
+                  while (rs.next()) {
+                    Row row = sheet.createRow(rowIdx[0]++);
+                    row.createCell(0).setCellValue(rs.getLong("id"));
+                    row.createCell(1).setCellValue(rs.getLong("user_id"));
+                    row.createCell(2).setCellValue(rs.getString("content"));
+                    row.createCell(3).setCellValue(rs.getDouble("spam_probability"));
+                    row.createCell(4).setCellValue(rs.getTimestamp("created_at").toString());
+                  }
+                } catch (SQLException e) {
+                  throw new RuntimeException("Error processing result set", e);
                 }
-              } catch (SQLException e) {
-                throw new RuntimeException("Error processing result set", e);
+                return null;
               }
-              return null;
-            }
-        );
+          );
+          log.info(">>> [ProblematicCommentService] exportToExcel: Finished processing month {}-{}", yearMonth.getYear(), yearMonth.getMonthValue());
+          return null;
+        });
+
+        futures.add(future);
+      }
+
+      // Đợi tất cả các task hoàn thành
+      for (Future<?> future : futures) {
+        try {
+          future.get();
+        } catch (InterruptedException | ExecutionException e) {
+          throw new IOException("Error during parallel processing: " + e.getMessage(), e);
+        }
       }
 
       // Ghi workbook vào ByteArrayOutputStream để trả về
+      log.info(">>> [ProblematicCommentService] exportToExcel: Writing workbook to output stream");
       try (ByteArrayOutputStream finalOut = new ByteArrayOutputStream()) {
         sharedWorkbook.write(finalOut);
+        log.info(">>> [ProblematicCommentService] exportToExcel: Finished writing workbook to output stream");
         return new ByteArrayInputStream(finalOut.toByteArray());
       }
     } catch (Exception e) {
       throw new IOException("Error during export: " + e.getMessage(), e);
     } finally {
+      // Shutdown thread pool
+      executor.shutdown();
+      try {
+        if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+          executor.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+
       // Dọn dẹp tài nguyên tạm thời của SXSSFWorkbook
       sharedWorkbook.dispose();
       sharedWorkbook.close();
