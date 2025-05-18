@@ -51,6 +51,7 @@ function Post({postInfo}) {
             setNumOfReacts(numOfReacts + 1);
         }
         setIsReact(!isReact);
+        console.log("Reacted: ", id);
         const result = await reactPost(id)
 
 

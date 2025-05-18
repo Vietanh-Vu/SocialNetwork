@@ -26,5 +26,6 @@ public class DashboardStatResponse {
     private Long userId;
     private String username;
     private Long commentCount;
+    private String avatar;
   }
 }

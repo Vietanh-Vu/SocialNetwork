@@ -199,6 +199,7 @@ export async function resetPassword(new_password, token) {
 }
 
 export async function reactPost(postId) {
+    console.log("truoc khi call api react post: ", postId)
     return await http
         // .post(`/post_reaction`, {postId: postId, reactionType: "LIKE"})
         .post(`/post_reaction`, {postId: postId})
@@ -495,6 +496,63 @@ export async function editComment(formData) {
 export async function createComment(formData) {
     return await http
         .post(`/comment`, formData)
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+
+export async function updateConfig(configData) {
+    const { name, code, desc } = configData;
+    console.log("update config: ", configData)
+
+    return await http
+        .put(`/admin/configs/${code}`, { value: desc })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function createConfig(configData) {
+    const { name, code, value } = configData;
+
+    return await http
+        .post(`/admin/configs`, { name, code, value })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function deleteConfig(code) {
+    return await http
+        .delete(`/admin/configs/${code}`)
         .then((res) => {
             return {
                 isSuccessful: true,

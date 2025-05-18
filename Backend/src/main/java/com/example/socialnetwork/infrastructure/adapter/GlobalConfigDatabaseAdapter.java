@@ -7,6 +7,7 @@ import com.example.socialnetwork.infrastructure.repository.GlobalConfigRepositor
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
 
 @AllArgsConstructor
@@ -60,5 +61,10 @@ public class GlobalConfigDatabaseAdapter implements GlobalConfigDatabasePort {
   @Override
   public GlobalConfig findByCode(String code) {
     return globalConfigRepository.findByCode(code).orElse(null);
+  }
+
+  @Override
+  public List<GlobalConfig> findByCodeContaining(String code) {
+    return globalConfigRepository.findByCodeContaining(code);
   }
 }

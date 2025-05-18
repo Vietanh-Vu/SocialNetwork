@@ -27,7 +27,7 @@ const ChartContainer = React.forwardRef(({ id, className, children, config, ...p
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
 
   return (
-    (<ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={{ config }}>
       <div
         data-chart={chartId}
         ref={ref}
@@ -41,7 +41,7 @@ const ChartContainer = React.forwardRef(({ id, className, children, config, ...p
           {children}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
-    </ChartContext.Provider>)
+    </ChartContext.Provider>
   );
 })
 ChartContainer.displayName = "Chart"
@@ -50,14 +50,14 @@ const ChartStyle = ({
   id,
   config
 }) => {
-  const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color)
+  const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color)
 
   if (!colorConfig.length) {
     return null
   }
 
   return (
-    (<style
+    <style
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(([theme, prefix]) => `
@@ -73,7 +73,7 @@ return color ? `  --color-${key}: ${color};` : null
 }
 `)
           .join("\n"),
-      }} />)
+      }} />
   );
 }
 
@@ -105,7 +105,7 @@ const ChartTooltipContent = React.forwardRef((
     }
 
     const [item] = payload
-    const key = `${labelKey || item.dataKey || item.name || "value"}`
+    const key = `${labelKey || item?.dataKey || item?.name || "value"}`
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
       !labelKey && typeof label === "string"
@@ -114,9 +114,9 @@ const ChartTooltipContent = React.forwardRef((
 
     if (labelFormatter) {
       return (
-        (<div className={cn("font-medium", labelClassName)}>
+        <div className={cn("font-medium", labelClassName)}>
           {labelFormatter(value, payload)}
-        </div>)
+        </div>
       );
     }
 
@@ -142,7 +142,7 @@ const ChartTooltipContent = React.forwardRef((
   const nestLabel = payload.length === 1 && indicator !== "dot"
 
   return (
-    (<div
+    <div
       ref={ref}
       className={cn(
         "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
@@ -156,7 +156,7 @@ const ChartTooltipContent = React.forwardRef((
           const indicatorColor = color || item.payload.fill || item.color
 
           return (
-            (<div
+            <div
               key={item.dataKey}
               className={cn(
                 "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
@@ -205,11 +205,11 @@ const ChartTooltipContent = React.forwardRef((
                   </div>
                 </>
               )}
-            </div>)
+            </div>
           );
         })}
       </div>
-    </div>)
+    </div>
   );
 })
 ChartTooltipContent.displayName = "ChartTooltip"
@@ -227,7 +227,7 @@ const ChartLegendContent = React.forwardRef((
   }
 
   return (
-    (<div
+    <div
       ref={ref}
       className={cn(
         "flex items-center justify-center gap-4",
@@ -239,7 +239,7 @@ const ChartLegendContent = React.forwardRef((
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
         return (
-          (<div
+          <div
             key={item.value}
             className={cn(
               "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
@@ -254,10 +254,10 @@ const ChartLegendContent = React.forwardRef((
                 }} />
             )}
             {itemConfig?.label}
-          </div>)
+          </div>
         );
       })}
-    </div>)
+    </div>
   );
 })
 ChartLegendContent.displayName = "ChartLegend"

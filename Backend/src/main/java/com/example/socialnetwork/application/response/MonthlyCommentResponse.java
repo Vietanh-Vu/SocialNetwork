@@ -19,7 +19,7 @@ public class MonthlyCommentResponse {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class MonthlyData {
-    private String month;
+    private Integer month;
     private Integer year;
     private Long count;
   }

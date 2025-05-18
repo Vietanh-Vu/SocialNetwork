@@ -135,11 +135,9 @@ public class BeanConfig {
   public PostDatabasePort postDatabasePort(
       PostRepository repository,
       RelationshipRepository relationshipRepository,
-      PostMapper postMapper,
-      TagMapper tagMapper,
-      TagRepository tagRepository) {
+      PostMapper postMapper) {
     return new PostDatabaseAdapter(
-        repository, relationshipRepository, postMapper, tagMapper, tagRepository);
+        repository, relationshipRepository, postMapper);
   }
 
   @Bean
@@ -149,7 +147,6 @@ public class BeanConfig {
       CloseRelationshipDatabasePort closeRelationshipDatabasePort,
       UserDatabasePort userDatabasePort,
       PostMapper postMapper,
-      TagMapper tagMapper,
       StorageServicePort storageServicePort,
       S3ServicePort s3ServicePort) {
     return new PostServiceImpl(
@@ -158,22 +155,8 @@ public class BeanConfig {
         closeRelationshipDatabasePort,
         userDatabasePort,
         postMapper,
-        tagMapper,
         storageServicePort,
         s3ServicePort);
-  }
-
-  @Bean
-  public TagDatabasePort tagDatabasePort(TagRepository repository, TagMapper tagMapper) {
-    return new TagDatabaseAdapter(repository, tagMapper);
-  }
-
-  @Bean
-  public TagServicePort tagServicePort(
-      TagDatabasePort tagDatabasePort,
-      PostDatabasePort postRepository,
-      RelationshipRepository relationshipRepository) {
-    return new TagServiceImpl(tagDatabasePort, postRepository, relationshipRepository);
   }
 
   @Bean

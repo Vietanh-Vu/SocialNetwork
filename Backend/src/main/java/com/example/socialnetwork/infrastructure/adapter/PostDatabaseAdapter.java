@@ -1,39 +1,29 @@
 package com.example.socialnetwork.infrastructure.adapter;
 
+import static com.example.socialnetwork.infrastructure.specification.PostSpecification.*;
+
 import com.example.socialnetwork.common.constant.Visibility;
 import com.example.socialnetwork.common.mapper.PostMapper;
-import com.example.socialnetwork.common.mapper.TagMapper;
-import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.common.util.SecurityUtil;
 import com.example.socialnetwork.domain.model.PostDomain;
-import com.example.socialnetwork.domain.model.UserDomain;
 import com.example.socialnetwork.domain.port.spi.PostDatabasePort;
 import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
 import com.example.socialnetwork.infrastructure.entity.Post;
-import com.example.socialnetwork.infrastructure.entity.Tag;
-import com.example.socialnetwork.infrastructure.entity.User;
 import com.example.socialnetwork.infrastructure.repository.PostRepository;
 import com.example.socialnetwork.infrastructure.repository.RelationshipRepository;
-import com.example.socialnetwork.infrastructure.repository.TagRepository;
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.example.socialnetwork.infrastructure.specification.PostSpecification.*;
 
 @RequiredArgsConstructor
 public class PostDatabaseAdapter implements PostDatabasePort {
     private final PostRepository postRepository;
     private final RelationshipRepository relationshipRepository;
     private final PostMapper postMapper;
-    private final TagMapper tagMapper;
-    private final TagRepository tagRepository;
 
     @Transactional
     @Override

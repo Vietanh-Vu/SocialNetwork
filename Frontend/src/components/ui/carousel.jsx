@@ -1,10 +1,9 @@
 "use client";
 import * as React from "react"
-import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons"
 import useEmblaCarousel from "embla-carousel-react";
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons"
 
 const CarouselContext = React.createContext(null)
 
@@ -87,7 +86,7 @@ const Carousel = React.forwardRef((
   }, [api, onSelect])
 
   return (
-    (<CarouselContext.Provider
+    <CarouselContext.Provider
       value={{
         carouselRef,
         api: api,
@@ -108,7 +107,7 @@ const Carousel = React.forwardRef((
         {...props}>
         {children}
       </div>
-    </CarouselContext.Provider>)
+    </CarouselContext.Provider>
   );
 })
 Carousel.displayName = "Carousel"
@@ -117,7 +116,7 @@ const CarouselContent = React.forwardRef(({ className, ...props }, ref) => {
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    (<div ref={carouselRef} className="overflow-hidden">
+    <div ref={carouselRef} className="overflow-hidden">
       <div
         ref={ref}
         className={cn(
@@ -126,7 +125,7 @@ const CarouselContent = React.forwardRef(({ className, ...props }, ref) => {
           className
         )}
         {...props} />
-    </div>)
+    </div>
   );
 })
 CarouselContent.displayName = "CarouselContent"
@@ -135,7 +134,7 @@ const CarouselItem = React.forwardRef(({ className, ...props }, ref) => {
   const { orientation } = useCarousel()
 
   return (
-    (<div
+    <div
       ref={ref}
       role="group"
       aria-roledescription="slide"
@@ -144,7 +143,7 @@ const CarouselItem = React.forwardRef(({ className, ...props }, ref) => {
         orientation === "horizontal" ? "pl-4" : "pt-4",
         className
       )}
-      {...props} />)
+      {...props} />
   );
 })
 CarouselItem.displayName = "CarouselItem"
@@ -153,7 +152,7 @@ const CarouselPrevious = React.forwardRef(({ className, variant = "outline", siz
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
 
   return (
-    (<Button
+    <Button
       ref={ref}
       variant={variant}
       size={size}
@@ -165,7 +164,7 @@ const CarouselPrevious = React.forwardRef(({ className, variant = "outline", siz
       {...props}>
       <ArrowLeftIcon className="h-4 w-4" />
       <span className="sr-only">Previous slide</span>
-    </Button>)
+    </Button>
   );
 })
 CarouselPrevious.displayName = "CarouselPrevious"
@@ -174,7 +173,7 @@ const CarouselNext = React.forwardRef(({ className, variant = "outline", size = 
   const { orientation, scrollNext, canScrollNext } = useCarousel()
 
   return (
-    (<Button
+    <Button
       ref={ref}
       variant={variant}
       size={size}
@@ -186,7 +185,7 @@ const CarouselNext = React.forwardRef(({ className, variant = "outline", size = 
       {...props}>
       <ArrowRightIcon className="h-4 w-4" />
       <span className="sr-only">Next slide</span>
-    </Button>)
+    </Button>
   );
 })
 CarouselNext.displayName = "CarouselNext"

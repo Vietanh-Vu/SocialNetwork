@@ -7,7 +7,6 @@ import com.example.socialnetwork.application.response.PostResponse;
 import com.example.socialnetwork.common.constant.ERelationship;
 import com.example.socialnetwork.common.constant.Visibility;
 import com.example.socialnetwork.common.mapper.PostMapper;
-import com.example.socialnetwork.common.mapper.TagMapper;
 import com.example.socialnetwork.common.util.HandleFile;
 import com.example.socialnetwork.common.util.SecurityUtil;
 import com.example.socialnetwork.domain.model.PostDomain;
@@ -40,7 +39,6 @@ public class PostServiceImpl implements PostServicePort {
     private final CloseRelationshipDatabasePort closeRelationshipDatabasePort;
     private final UserDatabasePort userDatabasePort;
     private final PostMapper postMapper;
-    private final TagMapper tagMapper;
     private final StorageServicePort storageServicePort;
     private final S3ServicePort s3ServicePort;
     private final static int NUMBER_FILE = 4;
@@ -114,22 +112,22 @@ public class PostServiceImpl implements PostServicePort {
     }
 
 
-    private void updateTags(PostDomain postDomain, PostUpdate postUpdate) {
-        if (postUpdate.getTagUsers().isEmpty()) {
-//            postDomain.setTagDomains(null);
-        } else {
-            List<TagRequest> tagRequests = Arrays.stream(postUpdate.getTagUsers().split(","))
-                    .map(tag -> new TagRequest(Long.parseLong(tag)))
-                    .toList();
-
-            List<TagDomain> tagDomains = tagRequests.stream()
-                    .map(tagRequest -> tagMapper.requestToDomain(tagRequest, postDomain.getId()))
-                    .toList();
-
-            checkTagUser(tagDomains);
-//            postDomain.setTagDomains(tagDomains);
-        }
-    }
+//    private void updateTags(PostDomain postDomain, PostUpdate postUpdate) {
+//        if (postUpdate.getTagUsers().isEmpty()) {
+////            postDomain.setTagDomains(null);
+//        } else {
+//            List<TagRequest> tagRequests = Arrays.stream(postUpdate.getTagUsers().split(","))
+//                    .map(tag -> new TagRequest(Long.parseLong(tag)))
+//                    .toList();
+//
+//            List<TagDomain> tagDomains = tagRequests.stream()
+//                    .map(tagRequest -> tagMapper.requestToDomain(tagRequest, postDomain.getId()))
+//                    .toList();
+//
+//            checkTagUser(tagDomains);
+////            postDomain.setTagDomains(tagDomains);
+//        }
+//    }
 
     public String handleUploadFile(List<String> photoList, PostUpdate postUpdate) {
         if (photoList.size() >= NUMBER_FILE || postUpdate.getPhotoLists() == null) {

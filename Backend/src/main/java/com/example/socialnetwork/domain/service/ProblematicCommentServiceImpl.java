@@ -4,6 +4,7 @@ import com.example.socialnetwork.application.response.DashboardStatResponse;
 import com.example.socialnetwork.application.response.MonthlyCommentResponse;
 import com.example.socialnetwork.application.response.TopViolatingUsersResponse;
 import com.example.socialnetwork.application.response.WeeklyCommentResponse;
+import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import com.example.socialnetwork.domain.model.UserDomain;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ProblematicCommentServiceImpl implements ProblematicCommentServicePort {
+  private final UserMapper userMapper;
   private final ProblematicCommentDatabasePort problematicCommentPort;
   private final UserDatabasePort userDatabasePort;
 
@@ -197,50 +199,80 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
 
   @Override
   public DashboardStatResponse getDashboardStats() {
-    // Today's stats
-    Instant startOfToday = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
     Instant endOfToday = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Long todayCount = problematicCommentPort.countByDateRange(startOfToday, endOfToday);
+    Instant startOfToday = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant();
 
-    // This week's stats
-    LocalDate today = LocalDate.now();
-    LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-    Instant startOfWeekInstant = startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Long weeklyCount = problematicCommentPort.countByDateRange(startOfWeekInstant, endOfToday);
+    // Tạo các CompletableFuture để xử lý song song các truy vấn
+    CompletableFuture<Long> todayCountFuture = CompletableFuture.supplyAsync(() ->
+        problematicCommentPort.countByDateRange(startOfToday, endOfToday));
 
-    // This month's stats
-    LocalDate startOfMonth = today.withDayOfMonth(1);
-    Instant startOfMonthInstant = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Long monthlyCount = problematicCommentPort.countByDateRange(startOfMonthInstant, endOfToday);
+    CompletableFuture<Long> weeklyCountFuture = CompletableFuture.supplyAsync(() -> {
+      LocalDate today = LocalDate.now();
+      LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+      Instant startOfWeekInstant = startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant();
+      return problematicCommentPort.countByDateRange(startOfWeekInstant, endOfToday);
+    });
 
-    // All time count
-    Long totalCount = problematicCommentPort.countByDateRange(Instant.EPOCH, endOfToday);
+    CompletableFuture<Long> monthlyCountFuture = CompletableFuture.supplyAsync(() -> {
+      LocalDate today = LocalDate.now();
+      LocalDate startOfMonth = today.withDayOfMonth(1);
+      Instant startOfMonthInstant = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant();
+      return problematicCommentPort.countByDateRange(startOfMonthInstant, endOfToday);
+    });
 
-    // Top 5 violators
-    List<TopViolatingUserDomain> topViolators = problematicCommentPort.getTopViolatingUsers(10);
+    CompletableFuture<Long> totalCountFuture = CompletableFuture.supplyAsync(() ->
+        problematicCommentPort.countByDateRange(Instant.EPOCH, endOfToday));
 
-    // Convert to response format
-    List<DashboardStatResponse.TopViolatorResponse> topViolatorsResponse = topViolators.stream()
-        .map(violator -> {
-          UserDomain user = violator.getUser();
-          Long count = violator.getCommentCount();
+    CompletableFuture<List<TopViolatingUserDomain>> topViolatorsFuture = CompletableFuture.supplyAsync(() ->
+        problematicCommentPort.getTopViolatingUsers(10));
 
-          return DashboardStatResponse.TopViolatorResponse.builder()
-              .userId(user.getId())
-              .username(user.getUsername())
-              .commentCount(count)
-              .build();
-        })
-        .collect(Collectors.toList());
+    try {
+      // Đợi tất cả các CompletableFuture hoàn thành
+      CompletableFuture.allOf(
+          todayCountFuture,
+          weeklyCountFuture,
+          monthlyCountFuture,
+          totalCountFuture,
+          topViolatorsFuture
+      ).join();
 
-    // Build the response
-    return DashboardStatResponse.builder()
-        .todayCount(todayCount)
-        .weeklyCount(weeklyCount)
-        .monthlyCount(monthlyCount)
-        .totalCount(totalCount)
-        .topViolators(topViolatorsResponse)
-        .build();
+      // Lấy kết quả sau khi tất cả đã hoàn thành
+      Long todayCount = todayCountFuture.join();
+      Long weeklyCount = weeklyCountFuture.join();
+      Long monthlyCount = monthlyCountFuture.join();
+      Long totalCount = totalCountFuture.join();
+      List<TopViolatingUserDomain> topViolators = topViolatorsFuture.join();
+
+      // Convert to response format
+      List<DashboardStatResponse.TopViolatorResponse> topViolatorsResponse = topViolators.stream()
+          .map(violator -> {
+            UserDomain user = violator.getUser();
+            Long count = violator.getCommentCount();
+
+            return DashboardStatResponse.TopViolatorResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .commentCount(count)
+                .avatar(user.getAvatar())
+                .build();
+          })
+          .collect(Collectors.toList());
+
+      // Build the response
+      return DashboardStatResponse.builder()
+          .todayCount(todayCount)
+          .weeklyCount(weeklyCount)
+          .monthlyCount(monthlyCount)
+          .totalCount(totalCount)
+          .topViolators(topViolatorsResponse)
+          .build();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      throw new RuntimeException("Lỗi khi truy vấn dữ liệu song song", cause);
+    }
   }
 
   @Override
@@ -323,7 +355,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
       Long count = problematicCommentPort.countByDateRange(monthStartInstant, monthEndInstant);
 
       MonthlyCommentResponse.MonthlyData monthData = MonthlyCommentResponse.MonthlyData.builder()
-          .month(monthStart.getMonth().toString())
+          .month(monthStart.getMonthValue())
           .year(monthStart.getYear())
           .count(count)
           .build();
@@ -349,6 +381,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
               .userId(user.getId())
               .username(user.getUsername())
               .commentCount(count)
+              .avatar(user.getAvatar())
               .build();
         })
         .collect(Collectors.toList());

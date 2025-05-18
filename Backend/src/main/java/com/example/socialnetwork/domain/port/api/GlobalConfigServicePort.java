@@ -8,7 +8,8 @@ import java.util.List;
 public interface GlobalConfigServicePort {
   Page<GlobalConfig> getAllConfigs(int page, int pageSize, String sortBy, String sortDirection);
   List<GlobalConfig> getAllConfigs();
-  GlobalConfig getConfigByCode(String code);
+  List<GlobalConfig> getConfigByCode(String code);
   GlobalConfig updateConfig(String code, String value);
   GlobalConfig createConfig(GlobalConfig configDomain);
+  void deleteConfig(String code);
 }

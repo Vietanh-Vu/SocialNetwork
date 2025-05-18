@@ -54,7 +54,7 @@ public class AdminController extends BaseController {
   @PreAuthorize("hasAuthority('ADMIN')")
   @GetMapping("/configs/{code}")
   public ResponseEntity<ResultResponse> getConfigByCode(@PathVariable String code) {
-    GlobalConfig config = globalConfigService.getConfigByCode(code);
+    List<GlobalConfig> config = globalConfigService.getConfigByCode(code);
     return buildResponse("Get config successfully", config);
   }
 
@@ -77,6 +77,13 @@ public class AdminController extends BaseController {
 
     GlobalConfig config = globalConfigService.createConfig(configDomain);
     return buildResponse("Config created successfully", config);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @DeleteMapping("/configs/{code}")
+  public ResponseEntity<ResultResponse> deleteConfig(@PathVariable String code) {
+    globalConfigService.deleteConfig(code);
+    return buildResponse("Config deleted successfully", Map.of("code", code));
   }
 
   // Problematic Comment endpoints

@@ -15,7 +15,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   jackson:
-    property-naming-strategy: SNAKE_CASE
+    property-naming-strategy: LOWER_CAMEL_CASE
   jpa:
     properties:
       hibernate:

@@ -14,6 +14,7 @@ import {useRouter} from "next/navigation";
 import {useEffect} from "react";
 import Cookies from "js-cookie";
 import process from "next/dist/build/webpack/loaders/resolve-url-loader/lib/postcss";
+import {jwtDecode} from "jwt-decode";
 
 export default function Page() {
     useEffect(() => {
@@ -37,12 +38,28 @@ export default function Page() {
             toast.error("Login failed. Please check your email and password again");
         } else {
             toast.success("Login successful");
-            await router.push("/home");
+            // Kiểm tra role từ token và chuyển hướng phù hợp
+            try {
+                const token = Cookies.get("access-token");
+                const decoded = jwtDecode(token);
+                const isAdmin = decoded.authorities && Array.isArray(decoded.authorities) &&
+                    decoded.authorities.includes('ADMIN');
+
+                if (isAdmin) {
+                    console.log("dang redirect sang admin")
+                    await router.push("/admin");
+                } else {
+                    await router.push("/home");
+                }
+            } catch (error) {
+                console.error("Error decoding token:", error);
+                await router.push("/home");
+            }
         }
     }
 
     return (
-        <>
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
             <div className="mx-auto grid w-[350px] gap-6">
                 <div className="grid gap-2 text-center">
                     <h1 className="text-3xl font-bold">Login</h1>
@@ -101,6 +118,6 @@ export default function Page() {
                     </Link>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

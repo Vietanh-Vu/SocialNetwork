@@ -2,6 +2,7 @@ package com.example.socialnetwork.domain.service;
 
 import com.example.socialnetwork.domain.port.api.GlobalConfigServicePort;
 import com.example.socialnetwork.domain.port.spi.GlobalConfigDatabasePort;
+import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.exception.custom.NotFoundException;
 import com.example.socialnetwork.infrastructure.entity.GlobalConfig;
 import com.example.socialnetwork.infrastructure.repository.GlobalConfigRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -34,8 +36,8 @@ public class GlobalConfigServiceImpl implements GlobalConfigServicePort {
   }
 
   @Override
-  public GlobalConfig getConfigByCode(String code) {
-    GlobalConfig config = globalConfigDatabasePort.findByCode(code);
+  public List<GlobalConfig> getConfigByCode(String code) {
+    List<GlobalConfig> config = globalConfigDatabasePort.findByCodeContaining(code);
     if (config == null) {
       throw new NotFoundException("Config with code " + code + " not found");
     }
@@ -56,8 +58,19 @@ public class GlobalConfigServiceImpl implements GlobalConfigServicePort {
 
   @Override
   public GlobalConfig createConfig(GlobalConfig configDomain) {
+    GlobalConfig existingConfig = globalConfigDatabasePort.findByCode(configDomain.getCode());
+    if (existingConfig != null) {
+      throw new ClientErrorException(
+          "Config with code " + configDomain.getCode() + " already exists");
+    }
     configDomain.setCreated(Instant.now());
 
     return globalConfigRepository.save(configDomain);
+  }
+
+  @Override
+  @Transactional
+  public void deleteConfig(String code) {
+    globalConfigRepository.deleteByCode(code);
   }
 }

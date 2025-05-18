@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 import com.example.socialnetwork.infrastructure.repository.CommentRepository;
 import com.example.socialnetwork.infrastructure.repository.PostReactionRepository;
-import com.example.socialnetwork.infrastructure.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +34,6 @@ public class PostMapper {
     private final UserServicePort userServicePort;
     private final PostReactionRepository postReactionRepository;
     private final CommentRepository commentRepository;
-    private final TagMapper tagMapper;
     private final StorageServicePort storageServicePort;
 
 

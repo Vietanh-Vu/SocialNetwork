@@ -256,3 +256,37 @@ export async function searchUser(page = 1, keyword) {
             };
         });
 }
+
+export async function getConfigs(page = 1, page_size = 10, sort_by = "code", sort_direction = "asc") {
+    return await http
+        .get("/admin/configs", {params: {page, page_size, sort_by, sort_direction}})
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getConfigByCode(code) {
+    return await http
+        .get(`/admin/configs/${code}`)
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
