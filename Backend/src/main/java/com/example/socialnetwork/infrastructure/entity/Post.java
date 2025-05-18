@@ -59,8 +59,4 @@ public class Post {
     @OneToMany(fetch = FetchType.EAGER,mappedBy = "post", cascade = CascadeType.ALL)
     private List<PostReaction> postReactions = new ArrayList<>();
 
-    @JsonIgnore
-    @OneToMany(fetch = FetchType.EAGER,mappedBy = "post", cascade = CascadeType.ALL)
-    private List<Tag> tags = new ArrayList<>();
-
 }

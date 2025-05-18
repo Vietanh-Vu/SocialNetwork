@@ -5,6 +5,7 @@ import org.example.kafkaconsumer.infrastructure.entity.Suggestion;
 import org.example.kafkaconsumer.infrastructure.entity.User;
 import org.example.kafkaconsumer.infrastructure.repository.SuggestionRepository;
 import org.example.kafkaconsumer.infrastructure.repository.UserRepository;
+import org.example.kafkaconsumer.service.AbstractSuggestionAction;
 import org.example.kafkaconsumer.service.ISuggestionAction;
 import org.example.kafkaconsumer.share.enums.Gender;
 import org.example.kafkaconsumer.share.enums.Status;
@@ -19,7 +20,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class RegisterSuggestionAction implements ISuggestionAction {
+public class RegisterSuggestionAction extends AbstractSuggestionAction {
     private final UserRepository userRepository;
     private final SuggestionRepository suggestionRepository;
 

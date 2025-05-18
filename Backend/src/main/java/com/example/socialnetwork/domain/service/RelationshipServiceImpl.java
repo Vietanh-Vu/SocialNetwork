@@ -14,6 +14,8 @@ import com.example.socialnetwork.domain.port.spi.RelationshipDatabasePort;
 import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
 import com.example.socialnetwork.exception.custom.NotFoundException;
 import com.example.socialnetwork.exception.custom.RelationshipException;
+import com.example.socialnetwork.infrastructure.entity.Suggestion;
+import com.example.socialnetwork.infrastructure.repository.SuggestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 
@@ -27,6 +29,7 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
     private final CloseRelationshipDatabasePort closeRelationshipDatabasePort;
     private final CustomEventPublisher customEventPublisher;
     private final CustomSuggestionMapper customSuggestionMapper;
+    private final SuggestionRepository suggestionRepository;
 
     @Override
     public void deleteRelationship(long friendId) {
@@ -140,24 +143,32 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
 
     @Override
     public Page<FriendResponse> findFriend(int page, int pageSize, String keyWord) {
-        long userId = SecurityUtil.getCurrentUserId();
-        Sort sort = Sort.by("username");
-//        List<FriendResponse> findFriendResponse = customSuggestionMapper.userDomainsToSearchFriendResponses(relationshipDatabasePort.findFriendByKeyWord(userId, keyWord));
-        List<UserDomain> friends = userDatabasePort.searchFriend(userId, keyWord);
+        long authUserId = SecurityUtil.getCurrentUserId();
+        List<UserDomain> suggestionDomains = userDatabasePort.searchFriend(authUserId, keyWord);
+        List<Long> userIds = suggestionDomains.stream().map(UserDomain::getId).toList();
 
-        List<FriendResponse> findFriendResponse = friends.stream()
-            .map(user -> new FriendResponse(
-                user.getId(),
-                user.getAvatar(),
-                user.getUsername(),
-                null,       // email
-                0,          // mutualFriends
-                null,       // status
-                null        // closeRelationship
-            ))
-            .collect(Collectors.toList());
+        List<Suggestion> suggestions = suggestionRepository.findAllByUser_IdAndFriend_IdIn(authUserId, userIds);
+        Map<Long, Integer> pointMap = suggestions.stream()
+            .collect(Collectors.toMap(
+                s -> s.getFriend().getId(),
+                Suggestion::getPoint
+            ));
 
-        return getPage(page, pageSize, findFriendResponse, sort);
+        List<UserDomain> userDomains = new ArrayList<>();
+        for (Long userid: userIds) {
+            if (authUserId == userid) continue;
+            userDomains.add(userDatabasePort.findById(userid));
+        }
+
+        // Sắp xếp theo điểm giảm dần
+        userDomains.sort((u1, u2) -> {
+            int point1 = pointMap.getOrDefault(u1.getId(), 0);
+            int point2 = pointMap.getOrDefault(u2.getId(), 0);
+            return Integer.compare(point2, point1); // giảm dần
+        });
+
+        List<FriendResponse> friendResponds = customSuggestionMapper.userDomainsToSearchFriendResponses(userDomains);
+        return getPage(page, pageSize, friendResponds);
     }
 
     @Override
@@ -204,17 +215,32 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
 
     @Override
     public Page<FriendResponse> searchUser(int page, int pageSize, String keyWord) {
-        long userId = SecurityUtil.getCurrentUserId();
+        long authUserId = SecurityUtil.getCurrentUserId();
         List<UserDomain> suggestionDomains = userDatabasePort.searchUser(keyWord);
         List<Long> userIds = suggestionDomains.stream().map(UserDomain::getId).toList();
 
+        List<Suggestion> suggestions = suggestionRepository.findAllByUser_IdAndFriend_IdIn(authUserId, userIds);
+        Map<Long, Integer> pointMap = suggestions.stream()
+            .collect(Collectors.toMap(
+                s -> s.getFriend().getId(),
+                Suggestion::getPoint
+            ));
+
         List<UserDomain> userDomains = new ArrayList<>();
         for (Long userid: userIds) {
+            if (authUserId == userid) continue;
             userDomains.add(userDatabasePort.findById(userid));
         }
 
-        List<FriendResponse> friendRespons = customSuggestionMapper.userDomainsToSearchFriendResponses(userDomains);
-        return getPage(page, pageSize, friendRespons);
+        // Sắp xếp theo điểm giảm dần
+        userDomains.sort((u1, u2) -> {
+            int point1 = pointMap.getOrDefault(u1.getId(), 0);
+            int point2 = pointMap.getOrDefault(u2.getId(), 0);
+            return Integer.compare(point2, point1); // giảm dần
+        });
+
+        List<FriendResponse> friendResponds = customSuggestionMapper.userDomainsToSearchFriendResponses(userDomains);
+        return getPage(page, pageSize, friendResponds);
     }
 
     private void checkFriend(long friendId) {

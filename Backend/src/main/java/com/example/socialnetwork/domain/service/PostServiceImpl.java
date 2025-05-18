@@ -62,7 +62,6 @@ public class PostServiceImpl implements PostServicePort {
 
     @Override
     public PostDomain createPost(PostDomain postDomain) {
-        checkTagUser(postDomain.getTagDomains());
         return postDatabasePort.createPost(postDomain);
     }
 
@@ -93,7 +92,7 @@ public class PostServiceImpl implements PostServicePort {
         postDomainExist.setVisibility(postUpdate.getVisibility());
 
         updatePhotos(postDomainExist, postUpdate, resultDelete);
-        updateTags(postDomainExist, postUpdate);
+//        updateTags(postDomainExist, postUpdate);
         postDomainExist.setUpdatedAt(Instant.now());
 
         return postDatabasePort.updatePost(postDomainExist);
@@ -117,7 +116,7 @@ public class PostServiceImpl implements PostServicePort {
 
     private void updateTags(PostDomain postDomain, PostUpdate postUpdate) {
         if (postUpdate.getTagUsers().isEmpty()) {
-            postDomain.setTagDomains(null);
+//            postDomain.setTagDomains(null);
         } else {
             List<TagRequest> tagRequests = Arrays.stream(postUpdate.getTagUsers().split(","))
                     .map(tag -> new TagRequest(Long.parseLong(tag)))
@@ -128,7 +127,7 @@ public class PostServiceImpl implements PostServicePort {
                     .toList();
 
             checkTagUser(tagDomains);
-            postDomain.setTagDomains(tagDomains);
+//            postDomain.setTagDomains(tagDomains);
         }
     }
 

@@ -14,6 +14,7 @@ import org.example.kafkaconsumer.consumer.dto.SuggestionEventDto;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -30,8 +31,11 @@ public class BlockSuggestionAction extends AbstractSuggestionAction {
     @Override
     @Transactional
     public void handle(SuggestionEventDto event) {
-        Suggestion suggestion = suggestionRepository.findByUserAndFriend(event.getUserId(), event.getTargetUserId());
-        Relationship relationship = relationshipRepository.findByUser_IdAndFriend_Id(event.getUserId(), event.getTargetUserId());
+        long userId = event.getUserId();
+        long targetUserId = event.getTargetUserId();
+
+        Suggestion suggestion = suggestionRepository.findByUserAndFriend(userId, targetUserId);
+        Relationship relationship = relationshipRepository.findByUser_IdAndFriend_Id(userId, targetUserId);
         
         suggestion.setStatus(Status.BLOCK);
         suggestionRepository.save(suggestion);
@@ -47,5 +51,6 @@ public class BlockSuggestionAction extends AbstractSuggestionAction {
                 updatePoint(event.getTargetUserId(), user1Friends, -1);
             }
         }
+        this.updateUserDocument(List.of(userId, targetUserId));
     }
 }

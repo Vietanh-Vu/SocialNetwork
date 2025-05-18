@@ -7,6 +7,7 @@ import {Button} from "@/components/ui/button";
 import {useAuth} from "@/app/(overview)/components/context/AuthContext";
 import Spinner from "@/app/(overview)/components/ultils/Spinner";
 import ProfileForm from "@/app/(overview)/components/ProfileForm";
+import ImageViewer from "@/app/(overview)/components/ImageViewer";
 
 function UserProfile({userProfile}) {
     const {currentUserId, loading} = useAuth();
@@ -16,7 +17,7 @@ function UserProfile({userProfile}) {
     return (
         <div className="w-full max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg">
-                <Image
+                <ImageViewer
                     src={userProfile.backgroundImage ? userProfile.backgroundImage : "/black.jpg"}
                     alt="Background"
                     width={1920}

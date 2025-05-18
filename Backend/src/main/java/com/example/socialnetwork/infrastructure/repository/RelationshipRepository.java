@@ -82,4 +82,14 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     @Query("SELECT r FROM Relationship r " +
             "WHERE (r.user.id = :userId AND r.friend.id = :friendId) ")
     Relationship getRelationship(@Param("userId") long userId, @Param("friendId") long friendId);
+
+    @Query(value = "SELECT r.friend_id\n" +
+        "FROM relationships r\n" +
+        "WHERE r.user_id = :userId AND r.relation = 'FRIEND'\n" +
+        "UNION\n" +
+        "SELECT r.user_id\n" +
+        "FROM relationships r\n" +
+        "WHERE r.friend_id = :userId AND r.relation = 'FRIEND'",
+        nativeQuery = true)
+    List<Long> getFriendIdsByUserId(@Param("userId") long userId);
 }

@@ -17,6 +17,7 @@ import {useRouter} from "next/navigation";
 import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog";
 import CommentForm from "@/app/(overview)/components/comment/CommentForm";
 import {Card} from "@/components/ui/card";
+import ImageViewer from "@/app/(overview)/components/ImageViewer";
 
 function CommentItem({comment}) {
     const {
@@ -134,7 +135,7 @@ function CommentItem({comment}) {
                 </p>
             </div>
             {image && (
-                <Image
+                <ImageViewer
                     src={image}
                     alt="Comment image"
                     width={800}

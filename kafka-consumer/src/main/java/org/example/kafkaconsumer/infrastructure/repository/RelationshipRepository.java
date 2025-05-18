@@ -3,7 +3,6 @@ package org.example.kafkaconsumer.infrastructure.repository;
 import org.example.kafkaconsumer.infrastructure.entity.Relationship;
 import org.example.kafkaconsumer.infrastructure.entity.User;
 import org.example.kafkaconsumer.share.enums.ERelationship;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,7 +20,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
         "FROM relationships r\n" +
         "WHERE r.friend_id = :userId AND r.relation = 'FRIEND'",
            nativeQuery = true)
-    List<Long> getFriendIdsByUserIdAndRelation(@Param("userId") long userId, @Param("relation") ERelationship relation);
+    List<Long> getFriendIdsByUserId(@Param("userId") long userId);
 
     @Query("SELECT r FROM Relationship r " +
         "WHERE (r.userId = :userId AND r.friendId = :friendId) " +

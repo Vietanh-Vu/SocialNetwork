@@ -5,7 +5,7 @@ import org.example.kafkaconsumer.infrastructure.entity.UserDocument;
 import org.example.kafkaconsumer.infrastructure.repository.UserElasticsearchRepository;
 import org.example.kafkaconsumer.processor.UserElasticsearchProcessor;
 import org.example.kafkaconsumer.share.mapper.UserMapper;
-import org.example.kafkaconsumer.usecase.dto.User;
+import org.example.kafkaconsumer.usecase.dto.UserDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,9 +16,9 @@ public class UserElasticsearchProcessorImpl implements UserElasticsearchProcesso
   private final UserElasticsearchRepository userElasticsearchRepository;
 
   @Override
-  public void saveAll(List<User> users) {
-    List<UserDocument> userDocuments = users.stream()
-        .map(UserMapper::toDocument)
+  public void saveAll(List<UserDto> userDtos) {
+    List<UserDocument> userDocuments = userDtos.stream()
+        .map(UserMapper::userDtoToDocument)
         .toList();
     userElasticsearchRepository.saveAll(userDocuments);
   }

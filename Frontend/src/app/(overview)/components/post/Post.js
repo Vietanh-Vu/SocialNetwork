@@ -16,6 +16,7 @@ import {toast} from "sonner";
 import {reactPost} from "@/lib/action";
 import MoreActionPost from "@/app/(overview)/components/post/MoreActionPost";
 import {useRouter} from "next/navigation";
+import ImageViewer from "@/app/(overview)/components/ImageViewer";
 
 function Post({postInfo}) {
     const {currentUserId, loading} = useAuth();
@@ -31,7 +32,7 @@ function Post({postInfo}) {
         photoResponses,
         numberOfComments,
         numberOfReacts,
-        tagUsers,
+        // tagUsers,
         isReacted
     } = postInfo;
 
@@ -95,10 +96,13 @@ function Post({postInfo}) {
                                     <Carousel className="w-full max-w-md">
                                         <CarouselContent>
                                             {photoResponses.map((photo) => (
-                                                <CarouselItem key={photo.id}>
-                                                    <Image width={1000} height={500} src={photo.url} alt="Post Image"
-                                                           className="rounded-lg max-h-[500px]"/>
-                                                </CarouselItem>
+                                                <ImageViewer
+                                                    src={photo.url}
+                                                    alt="Post Image"
+                                                    width={1000}
+                                                    height={500}
+                                                    className="rounded-lg max-h-[500px]"
+                                                />
                                             ))}
                                         </CarouselContent>
                                         <CarouselPrevious/>
@@ -134,13 +138,13 @@ function Post({postInfo}) {
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1 text-sm">
-                                {tagUsers.map(user => {
-                                    return (<Card key={user.id} className="p-1">
-                                        <Link href={`/home/${user.id}`}>
-                                            {`${user.username} `}
-                                        </Link>
-                                    </Card>)
-                                })}
+                                {/*{tagUsers.map(user => {*/}
+                                {/*    return (<Card key={user.id} className="p-1">*/}
+                                {/*        <Link href={`/home/${user.id}`}>*/}
+                                {/*            {`${user.username} `}*/}
+                                {/*        </Link>*/}
+                                {/*    </Card>)*/}
+                                {/*})}*/}
                                 <Tag className="w-4 h-4"/>
                             </div>
                         </div>

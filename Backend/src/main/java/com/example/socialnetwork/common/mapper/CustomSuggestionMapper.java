@@ -32,7 +32,9 @@ public class CustomSuggestionMapper {
             friendResponse.setUsername(userDomain.getUsername());
             friendResponse.setEmail(userDomain.getEmail());
             friendResponse.setAvatar(userDomain.getAvatar());
-            friendResponse.setMutualFriends(suggestionRepository.findByUserAndFriend(userDomain.getId(), SecurityUtil.getCurrentUserId()).getMutualFriends());
+            List<Long> curUserFriendsId = relationshipRepository.getFriendIdsByUserId(SecurityUtil.getCurrentUserId());
+            List<Long> userFriendsId = relationshipRepository.getFriendIdsByUserId(userDomain.getId());
+            friendResponse.setMutualFriends(userFriendsId.stream().filter(curUserFriendsId::contains).toList().size());
             Relationship relationship = relationshipRepository.getRelationship(userDomain.getId(), SecurityUtil.getCurrentUserId());
             if(relationship != null) {
                 if(relationship.getRelation() == ERelationship.PENDING) friendResponse.setStatus(ERelationship.RECEIVED);

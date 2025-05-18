@@ -9,7 +9,7 @@ import {ScrollArea} from "@/components/ui/scroll-area";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {getAvatarFallback} from "@/lib/utils";
 
-function SearchTag({onUserClick}) {
+function SearchFriend({onUserClick}) {
     const [users, setUsers] = useState([]);
     const [value, setValue] = useState('');
 
@@ -59,4 +59,4 @@ function SearchTag({onUserClick}) {
     )
 }
 
-export default SearchTag;
+export default SearchFriend;

@@ -54,11 +54,6 @@ public class PostMapper {
             postDomain.setUpdatedAt(post.getUpdatedAt());
             postDomain.setLastComment(post.getLastComment());
             postDomain.setPhotoLists(post.getPhotoLists());
-            if(post.getTags() != null) {
-                postDomain.setTagDomains(post.getTags().stream().map(tagMapper::entityToDomain).toList());
-            }else{
-                postDomain.setTagDomains(null);
-            }
             return postDomain;
         }
     }
@@ -117,11 +112,11 @@ public class PostMapper {
             postResponse.setUsername(getUsername(postDomain.getUserId()));
             postResponse.setAvatar(getAvatar(postDomain.getUserId()));
 
-            if(postDomain.getTagDomains() != null) {
-                postResponse.setTagUsers(postDomain.getTagDomains().stream().map(tagMapper::domainToUserResponse).collect(Collectors.toList()));
-            }else {
-                postResponse.setTagUsers(null);
-            }
+//            if(postDomain.getTagDomains() != null) {
+//                postResponse.setTagUsers(postDomain.getTagDomains().stream().map(tagMapper::domainToUserResponse).collect(Collectors.toList()));
+//            }else {
+//                postResponse.setTagUsers(null);
+//            }
 
             postResponse.setCreatedAt(postDomain.getCreatedAt());
             postResponse.setUpdatedAt(postDomain.getUpdatedAt());
@@ -142,14 +137,14 @@ public class PostMapper {
         postDomain.setContent(postRequest.getContent());
 //        postDomain.setTagDomains(postRequest.getTagUsers().stream().map(tagRequest -> tagMapper.requestToDomain(tagRequest, postDomain.getId())).toList());
 
-        if (postRequest.getTagUsers() == null || postRequest.getTagUsers().isEmpty()){
-            postDomain.setTagDomains(null);
-        }else{
-            String [] tags = postRequest.getTagUsers().split(",");
-            List<TagRequest> tagRequests = new ArrayList<>();
-            tagRequests = Arrays.stream(tags).map(tag -> new TagRequest(Long.parseLong(tag))).toList();
-            postDomain.setTagDomains(tagRequests.stream().map(tagRequest -> tagMapper.requestToDomain(tagRequest, postDomain.getId())).toList());
-        }
+//        if (postRequest.getTagUsers() == null || postRequest.getTagUsers().isEmpty()){
+//            postDomain.setTagDomains(null);
+//        }else{
+//            String [] tags = postRequest.getTagUsers().split(",");
+//            List<TagRequest> tagRequests = new ArrayList<>();
+//            tagRequests = Arrays.stream(tags).map(tag -> new TagRequest(Long.parseLong(tag))).toList();
+//            postDomain.setTagDomains(tagRequests.stream().map(tagRequest -> tagMapper.requestToDomain(tagRequest, postDomain.getId())).toList());
+//        }
 
         String photoPaths = HandleFile.loadFileImage(postRequest, storageServicePort, 4);
         postDomain.setPhotoLists(photoPaths);

@@ -7,6 +7,7 @@ import {NextResponse} from "next/server";
 import {redirect} from "next/navigation";
 import process from "next/dist/build/webpack/loaders/resolve-url-loader/lib/postcss";
 import Cookies from "js-cookie";
+import humps from "humps";
 
 const config = {
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -49,7 +50,23 @@ const onRequestError = (error) => {
     return Promise.reject(error);
 };
 
+// Thêm response interceptor để chuyển đổi từ snake_case sang camelCase
+const onResponse = (response) => {
+    if (response.data) {
+        // Chuyển đổi tất cả các trường snake_case sang camelCase
+        response.data = humps.camelizeKeys(response.data);
+    }
+    return response;
+};
+
+const onResponseError = (error) => {
+    return Promise.reject(error);
+};
+
 // Request interceptor
 http.interceptors.request.use(onRequest, onRequestError);
+
+// Response interceptor
+http.interceptors.response.use(onResponse, onResponseError);
 
 export default http;

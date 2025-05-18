@@ -15,6 +15,6 @@ public class RelationshipProcessorImpl implements RelationshipProcessor {
 
   @Override
   public List<Long> getListFriend(Long userId) {
-    return relationshipRepository.getFriendIdsByUserIdAndRelation(userId, ERelationship.FRIEND);
+    return relationshipRepository.getFriendIdsByUserId(userId);
   }
 }

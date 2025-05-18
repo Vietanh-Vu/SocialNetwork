@@ -10,7 +10,7 @@ import {
 import {Button} from "@/components/ui/button"
 import {Textarea} from "@/components/ui/textarea"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import SearchTag from "@/app/(overview)/components/ultils/SearchTag";
+import SearchFriend from "@/app/(overview)/components/ultils/SearchFriend";
 import {Input} from "@/components/ui/input";
 import {useState} from "react";
 import Image from "next/image";
@@ -30,7 +30,7 @@ import {useRouter} from "next/navigation";
 function PostForm() {
     const [selectedImages, setSelectedImages] = useState([]);
     const [imagesPreviews, setImagesPreviews] = useState([]);
-    const [selectedTags, setSelectedTags] = useState([]);
+    // const [selectedTags, setSelectedTags] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter()
 
@@ -73,7 +73,7 @@ function PostForm() {
         selectedImages.forEach((photo) => {
             formData.append("photoLists", photo)
         })
-        formData.append("tagUsers", selectedTags.map(user => user.id).join(","))
+        // formData.append("tagUsers", selectedTags.map(user => user.id).join(","))
 
         setIsLoading(true)
         const result = await createPost(formData)
@@ -175,40 +175,40 @@ function PostForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="tags"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Tag</FormLabel>
-                                            <FormControl>
-                                                <ScrollArea className="max-h-24 flex flex-wrap gap-2 mt-2 mb-2">
-                                                    <div className="flex flex-wrap gap-2 max-h-24">
-                                                        {selectedTags.map((user) => (
-                                                            <Card
-                                                                key={user.id}
-                                                                className="px-2 py-1 rounded-md flex items-center gap-2"
-                                                            >
-                                                                <Avatar>
-                                                                    <AvatarImage src={user.avatar} alt={user.username}/>
-                                                                    <AvatarFallback>{getAvatarFallback(user.username)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <span>{user.username}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    className="text-red-500 hover:text-red-600 transition-colors"
-                                                                    onClick={() => handleRemoveTag(user)}
-                                                                >
-                                                                    <XIcon className="h-4 w-4"/>
-                                                                </button>
-                                                            </Card>
-                                                        ))}
-                                                    </div>
-                                                </ScrollArea>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
+                                {/*<FormField*/}
+                                {/*    control={form.control}*/}
+                                {/*    name="tags"*/}
+                                {/*    render={({field}) => (*/}
+                                {/*        <FormItem>*/}
+                                {/*            <FormLabel>Tag</FormLabel>*/}
+                                {/*            <FormControl>*/}
+                                {/*                <ScrollArea className="max-h-24 flex flex-wrap gap-2 mt-2 mb-2">*/}
+                                {/*                    <div className="flex flex-wrap gap-2 max-h-24">*/}
+                                {/*                        {selectedTags.map((user) => (*/}
+                                {/*                            <Card*/}
+                                {/*                                key={user.id}*/}
+                                {/*                                className="px-2 py-1 rounded-md flex items-center gap-2"*/}
+                                {/*                            >*/}
+                                {/*                                <Avatar>*/}
+                                {/*                                    <AvatarImage src={user.avatar} alt={user.username}/>*/}
+                                {/*                                    <AvatarFallback>{getAvatarFallback(user.username)}</AvatarFallback>*/}
+                                {/*                                </Avatar>*/}
+                                {/*                                <span>{user.username}</span>*/}
+                                {/*                                <button*/}
+                                {/*                                    type="button"*/}
+                                {/*                                    className="text-red-500 hover:text-red-600 transition-colors"*/}
+                                {/*                                    onClick={() => handleRemoveTag(user)}*/}
+                                {/*                                >*/}
+                                {/*                                    <XIcon className="h-4 w-4"/>*/}
+                                {/*                                </button>*/}
+                                {/*                            </Card>*/}
+                                {/*                        ))}*/}
+                                {/*                    </div>*/}
+                                {/*                </ScrollArea>*/}
+                                {/*            </FormControl>*/}
+                                {/*        </FormItem>*/}
+                                {/*    )}*/}
+                                {/*/>*/}
                                 {/*<SearchTag onUserClick={handleUserClick}/>*/}
                                 <div className="flex justify-end gap-2">
                                     <Button type="submit">Create Post</Button>

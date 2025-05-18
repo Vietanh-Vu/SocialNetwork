@@ -142,6 +142,7 @@ public class AuthServiceImpl implements AuthServicePort {
             return AuthResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
+                    .userId(user.getUsername())
                     .build();
         }
     }

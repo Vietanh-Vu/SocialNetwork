@@ -24,6 +24,9 @@ public class SocialNetworkApplication {
 		// In chuỗi đã mã hóa ra màn hình console
 		System.out.println("Original Password: " + originalPassword);
 		System.out.println("Encoded Password: " + encodedPassword);
+		System.out.println("----------------------");
+		System.out.println("Backend service ready to use");
+		System.out.println("----------------------");
 	}
 
 }

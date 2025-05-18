@@ -7,7 +7,7 @@ import org.example.kafkaconsumer.share.enums.CDCEvent;
 import org.example.kafkaconsumer.share.enums.DataChangeInfo;
 import org.example.kafkaconsumer.share.utils.ModelMapperUtils;
 import org.example.kafkaconsumer.usecase.UserHandlerUseCase;
-import org.example.kafkaconsumer.usecase.dto.User;
+import org.example.kafkaconsumer.usecase.dto.UserDto;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +15,9 @@ import java.util.List;
 
 @Component
 public class CDCUsers extends AbstractCDCConsumer<UserAvro> {
-  private final UserHandlerUseCase<User> userHandlerUseCase;
+  private final UserHandlerUseCase<UserDto> userHandlerUseCase;
 
-  protected CDCUsers(ObjectMapper objectMapper, UserHandlerUseCase<User> userUserHandlerUseCase) {
+  protected CDCUsers(ObjectMapper objectMapper, UserHandlerUseCase<UserDto> userUserHandlerUseCase) {
     super(objectMapper);
     this.userHandlerUseCase = userUserHandlerUseCase;
   }
@@ -38,14 +38,14 @@ public class CDCUsers extends AbstractCDCConsumer<UserAvro> {
         System.out.println("CDCUsers: " + dataChangeInfoAvro);
 
         // Convert UserAvro -> User
-        User before = dataChangeInfoAvro.getBefore() != null
-            ? ModelMapperUtils.mapper(dataChangeInfoAvro.getBefore(), User.class)
+        UserDto before = dataChangeInfoAvro.getBefore() != null
+            ? ModelMapperUtils.mapper(dataChangeInfoAvro.getBefore(), UserDto.class)
             : null;
-        User after = dataChangeInfoAvro.getAfter() != null
-            ? ModelMapperUtils.mapper(dataChangeInfoAvro.getAfter(), User.class)
+        UserDto after = dataChangeInfoAvro.getAfter() != null
+            ? ModelMapperUtils.mapper(dataChangeInfoAvro.getAfter(), UserDto.class)
             : null;
 
-        DataChangeInfo<User> dataChangeInfoUser = DataChangeInfo.<User>builder()
+        DataChangeInfo<UserDto> dataChangeInfoUser = DataChangeInfo.<UserDto>builder()
             .before(before)
             .after(after)
             .op(dataChangeInfoAvro.getOp())

@@ -42,5 +42,6 @@ public class FriendDeleteSuggestionAction extends AbstractSuggestionAction {
         if (!user1Friends.isEmpty()) {
             updatePoint(event.getTargetUserId(), user1Friends, -1);
         }
+        this.updateUserDocument(List.of(event.getUserId(), event.getTargetUserId()));
     }
 }

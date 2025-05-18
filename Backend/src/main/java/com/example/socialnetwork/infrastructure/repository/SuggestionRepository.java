@@ -30,4 +30,6 @@ public interface SuggestionRepository extends JpaRepository<Suggestion, Long>{
             "AND r.status <> 'BLOCK' " +
             "ORDER BY r.status ASC, r.point DESC, r.mutualFriends DESC ")
     List<Suggestion> searchUser(@Param("userId") long userId);
+
+    List<Suggestion> findAllByUser_IdAndFriend_IdIn(Long userId, List<Long> friendId);
 }

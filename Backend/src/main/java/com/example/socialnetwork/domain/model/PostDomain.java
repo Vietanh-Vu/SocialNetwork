@@ -35,6 +35,4 @@ public class PostDomain {
     private  Long numberOfComments;
 
     private Long numberOfReacts;
-
-    private List<TagDomain> tagDomains;
 }

@@ -52,7 +52,7 @@ public class User {
     @Column(name = "visibility")
     private String visibility;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
 

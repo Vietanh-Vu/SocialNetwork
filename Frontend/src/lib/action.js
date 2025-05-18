@@ -63,6 +63,7 @@ export async function login(loginForm) {
             cookies().set("refresh-token", data.refreshToken, {maxAge: process.env.NEXT_PUBLIC_ACCESS_REFRESH_EXPIRY});
             return {
                 isSuccessful: true,
+                data: res.data.result.data
             }
         })
         .catch((err) => {
