@@ -290,3 +290,126 @@ export async function getConfigByCode(code) {
             };
         });
 }
+
+export async function getDashboardData() {
+    return await http
+        .get("/admin/dashboard")
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function exportData(minProbability, maxProbability) {
+    return await http
+        .get("/admin/problematic-comments/export", {
+            params: {minProbability, maxProbability},
+            responseType: 'arraybuffer', // Sử dụng arraybuffer thay vì blob
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: {
+                    arrayBuffer: res.data, // Trả về dạng arraybuffer
+                    type: res.headers['content-type'],
+                    filename: getFilenameFromHeaders(res.headers) || 'problematic_comments.xlsx'
+                }
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message || "Export failed ở data.js"
+            };
+        });
+}
+
+// Helper function to get filename from headers
+function getFilenameFromHeaders(headers) {
+    const contentDisposition = headers['content-disposition'];
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch && filenameMatch[1]) {
+            return filenameMatch[1];
+        }
+    }
+    return null;
+}
+
+export async function getProblematicComments(page = 1, minProbability, maxProbability, startDate, endDate) {
+    return await http
+        .get("/admin/problematic-comments", {
+            params: {page, minProbability, maxProbability, startDate, endDate}
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getWeeklyStats() {
+    return await http
+        .get("/admin/stats/weekly")
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getMonthlyStats() {
+    return await http
+        .get("/admin/stats/monthly")
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getTopViolators(limit = 10) {
+    return await http
+        .get("/admin/stats/top-violators", {params: {limit}})
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}

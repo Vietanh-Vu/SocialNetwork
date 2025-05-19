@@ -1,22 +1,56 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-// Mock data
-const dashboardData = {
-    today_count: 24,
-    weekly_count: 156,
-    monthly_count: 587,
-    total_count: 12453,
-    top_violators: [
-        { user_id: 1, username: "toxic_user1", comment_count: 45, avatar: "/placeholder-user.jpg" },
-        { user_id: 2, username: "spammer42", comment_count: 38, avatar: "/placeholder-user.jpg" },
-        { user_id: 3, username: "bad_actor99", comment_count: 27, avatar: "/placeholder-user.jpg" },
-    ],
-}
+import { getDashboardData } from "@/lib/data"
+import { Loader2 } from "lucide-react"
+import {toast} from "sonner";
+import {getAvatarFallback} from "@/lib/utils";
 
 export function CommentsDashboard() {
+    const [dashboardData, setDashboardData] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await getDashboardData()
+                if (response.isSuccessful) {
+                    setDashboardData(response.data.data)
+                } else {
+                    setError(response.message || "Error fetching data")
+                    toast.error(response.message || "Error fetching data")
+                }
+            } catch (err) {
+                setError("Error fetching data")
+                toast.error("Error fetching data")
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData().then(r => {})
+    }, [])
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-40">
+               Loading...
+            </div>
+        )
+    }
+
+    if (error || !dashboardData) {
+        return (
+            <div className="text-center p-4 text-destructive">
+                {error || "Không thể tải dữ liệu"}
+            </div>
+        )
+    }
+
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -24,7 +58,7 @@ export function CommentsDashboard() {
                     <CardTitle className="text-sm font-medium">Today</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{dashboardData.today_count}</div>
+                    <div className="text-2xl font-bold">{dashboardData.todayCount.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">Problematic comments today</p>
                 </CardContent>
             </Card>
@@ -34,7 +68,7 @@ export function CommentsDashboard() {
                     <CardTitle className="text-sm font-medium">This Week</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{dashboardData.weekly_count}</div>
+                    <div className="text-2xl font-bold">{dashboardData.weeklyCount.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">Problematic comments this week</p>
                 </CardContent>
             </Card>
@@ -44,7 +78,7 @@ export function CommentsDashboard() {
                     <CardTitle className="text-sm font-medium">This Month</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{dashboardData.monthly_count}</div>
+                    <div className="text-2xl font-bold">{dashboardData.monthlyCount.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">Problematic comments this month</p>
                 </CardContent>
             </Card>
@@ -54,7 +88,7 @@ export function CommentsDashboard() {
                     <CardTitle className="text-sm font-medium">Total</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{dashboardData.total_count}</div>
+                    <div className="text-2xl font-bold">{dashboardData.totalCount.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">Total problematic comments</p>
                 </CardContent>
             </Card>
@@ -64,18 +98,18 @@ export function CommentsDashboard() {
                     <CardTitle>Top Violators</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {dashboardData.top_violators.map((violator) => (
-                            <div key={violator.user_id} className="flex items-center gap-4 rounded-lg border p-4">
+                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+                        {dashboardData.topViolators.map((violator) => (
+                            <div key={violator.userId} className="flex items-center gap-4 rounded-lg border p-4">
                                 <Avatar>
                                     <AvatarImage src={violator.avatar || "/placeholder.svg"} alt={violator.username} />
-                                    <AvatarFallback>{violator.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                    <AvatarFallback>{getAvatarFallback(violator.username)}</AvatarFallback>
                                 </Avatar>
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium leading-none">{violator.username}</p>
-                                    <p className="text-sm text-muted-foreground">User ID: {violator.user_id}</p>
+                                    <p className="text-sm text-muted-foreground">User ID: {violator.userId}</p>
                                     <p className="text-sm font-semibold text-destructive">
-                                        {violator.comment_count} problematic comments
+                                        {violator.commentCount.toLocaleString()} problematic comments
                                     </p>
                                 </div>
                             </div>

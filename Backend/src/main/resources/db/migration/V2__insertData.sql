@@ -21,8 +21,8 @@ BEGIN
     DECLARE work_list VARCHAR(255);
     DECLARE education_list VARCHAR(255);
 
-    SET first_name_list = 'Anh,Ánh,Bảo,Bình,Chi,Châu,Công,Dũng,Duy,Duyên,Hải,Hà,Hân,Hằng,Hiếu,Hiền,Hòa,Hoài,Hùng,Hương,Khánh,Khoa,Kiên,Lan,Linh,Lộc,Long,Mai,Minh,My,Nam,Ngân,Ngọc,Nguyên,Nhân,Nhung,Phát,Phúc,Phương,Quân,Quang,Quốc,Sơn,Tâm,Thảo,Thành,Thịnh,Trang,Trúc,Tú,Vân';
-    SET last_name_list = 'Nguyễn,Trần,Lê,Phạm,Hoàng,Huỳnh,Phan,Vũ,Võ,Đặng,Bùi,Đỗ,Hồ,Ngô,Dương,Lý,Phùng,Mai,Trịnh,Trương,Đinh,Lưu,Vương,Hà,Cao,Tô,Châu,Quách,Phước,Thái,Mạc,Lâm,Giang,Chu,Khổng,Đoàn,Âu,Đinh,Tạ,Tăng,Khúc,Sầm,Từ,Doãn,Đào,Đinh,Hứa,Lạc,Quỳnh';
+    SET first_name_list = 'Ánh,Bảo,Bình,Chí,Châu,Công,Dũng,Duyên,Hải,Hà,Hân,Hằng,Hiếu,Hiền,Hòa,Hoài,Hùng,Hương,Khánh,Khóa,Kiên,Lán,Lính,Lộc,Lóng,Mại,Mính,Mý,Nạm,Ngân,Ngọc,Nguyên,Nhân,Nhúng,Phát,Phúc,Phương,Quân,Quạng,Quốc,Sơn,Tâm,Thảo,Thành,Thịnh,Tráng,Trúc,Tú,Vân';
+    SET last_name_list = 'Nguyễn,Trần,Lê,Phạm,Hoàng,Huỳnh,Phán,Vũ,Võ,Đặng,Bùi,Đỗ,Hồ,Ngô,Dương,Lý,Phùng,Mai,Trịnh,Trương,Đinh,Lưu,Vương,Hà,Cáo,Tô,Châu,Quách,Phước,Thái,Mạc,Lâm,Giáng,Chú,Khổng,Đoàn,Âu,Đinh,Tạ,Tăng,Khúc,Sầm,Từ,Doãn,Đào,Đinh,Hứa,Lạc,Quỳnh';
     SET location_list = 'Hà Nội,Hồ Chí Minh,Đà Nẵng,Hải Phòng,Cần Thơ,An Giang,Bà Rịa - Vũng Tàu,Bắc Giang,Bắc Kạn,Bạc Liêu,Bắc Ninh,Bến Tre,Bình Định,Bình Dương,Bình Phước,Bình Thuận,Cà Mau,Cao Bằng,Đắk Lắk,Đắk Nông,Điện Biên,Đồng Nai,Đồng Tháp,Gia Lai,Hà Giang';
     SET work_list = 'Doctor,Teacher,Student,Farmer,Policeman,Engineer,IT Specialist,Nurse,Lawyer,Chef,Architect,Accountant,Scientist,Journalist,Pilot,Driver,Electrician,Plumber,Mechanic,Pharmacist';
     SET education_list = 'ĐH Bách Khoa,ĐH Quốc Gia,ĐH Xây Dựng,ĐH Kinh Tế Quốc Dân,ĐH Công Nghệ,ĐH Luật,ĐH Dược,ĐH Y,ĐH Ngoại Ngữ,ĐH Hàng Hải,ĐH Thương Mại,ĐH Sư Phạm,ĐH Ngoại Thương,ĐH Giao Thông Vận Tải,ĐH Mỏ Địa Chất,ĐH Kiến Trúc,ĐH Tài Chính';
