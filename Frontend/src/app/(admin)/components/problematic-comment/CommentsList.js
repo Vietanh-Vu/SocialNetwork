@@ -77,30 +77,41 @@ export function CommentsList() {
         try {
             const minProb = probabilityRange[0];
             const maxProb = probabilityRange[1];
-            const startDate = dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
-            const endDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
 
-            const result = await exportData(minProb, maxProb, startDate, endDate);
+            // Xây dựng URL API
+            const downloadUrl = `/api/download/problematic-comments?minProbability=${minProb}&maxProbability=${maxProb}`;
 
-            if (result.isSuccessful) {
-                // Tạo blob từ arraybuffer
-                const blob = new Blob([result.data.arrayBuffer], {type: result.data.type});
+            // Sử dụng fetch API để lấy dữ liệu nhị phân
+            const response = await fetch(downloadUrl);
 
-                // Tạo URL đối tượng và tải xuống
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = result.data.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-
-                toast.success("Export successful");
-            } else {
-                toast.error("Export failed");
-                console.error("Export error:", result.message);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            // Lấy tên tập tin từ header hoặc sử dụng tên mặc định
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'problematic_comments.xlsx';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Chuyển đổi phản hồi thành blob
+            const blob = await response.blob();
+
+            // Tạo URL đối tượng và tải xuống
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Export successful");
         } catch (error) {
             toast.error("Export error");
             console.error("Export error:", error);
@@ -319,7 +330,7 @@ export function CommentsList() {
                     {isExporting ? (
                         <span className="flex items-center">
                             <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                            <span>Đang xuất...</span>
+                            <span>Exporting...</span>
                         </span>
                     ) : (
                         <span className="flex items-center">

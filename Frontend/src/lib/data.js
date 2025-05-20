@@ -308,10 +308,10 @@ export async function getDashboardData() {
         });
 }
 
-export async function exportData(minProbability, maxProbability) {
+export async function exportData(minProbability, maxProbability, startDate, endDate) {
     return await http
         .get("/admin/problematic-comments/export", {
-            params: {minProbability, maxProbability},
+            params: {minProbability, maxProbability, startDate, endDate},
             responseType: 'arraybuffer', // Sử dụng arraybuffer thay vì blob
         })
         .then((res) => {
@@ -325,6 +325,7 @@ export async function exportData(minProbability, maxProbability) {
             };
         })
         .catch((err) => {
+            console.log(err)
             return {
                 isSuccessful: false,
                 message: err.response?.data?.message || "Export failed ở data.js"
