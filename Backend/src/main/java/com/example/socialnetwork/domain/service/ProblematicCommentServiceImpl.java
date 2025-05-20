@@ -109,10 +109,9 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("id");
         headerRow.createCell(1).setCellValue("user_id");
-        headerRow.createCell(2).setCellValue("username");
-        headerRow.createCell(3).setCellValue("content");
-        headerRow.createCell(4).setCellValue("probability");
-        headerRow.createCell(5).setCellValue("created_at");
+        headerRow.createCell(2).setCellValue("content");
+        headerRow.createCell(3).setCellValue("probability");
+        headerRow.createCell(4).setCellValue("created_at");
 
         sheets.put(sheetName, sheet);
       }
