@@ -163,6 +163,12 @@ public class RelationshipDatabaseAdapter implements RelationshipDatabasePort {
         if(relationship == null) {
             throw new NotFoundException("Not found relationship");
         }
+
+        if (Objects.equals(eRelationship, ERelationship.BLOCK)) {
+          relationship.setUser(User.builder().id(userId).build());
+          relationship.setFriend(User.builder().id(friendId).build());
+        }
+
         relationship.setRelation(eRelationship);
         relationshipRepository.save(relationship);
     }
