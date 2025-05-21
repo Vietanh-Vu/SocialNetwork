@@ -16,7 +16,7 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
 import {Label} from "@/components/ui/label"
-import {CalendarIcon, Download, Loader2} from "lucide-react"
+import {CalendarIcon, Download, FilterIcon} from "lucide-react"
 import {Slider} from "@/components/ui/slider"
 import {format} from "date-fns"
 import {cn, getAvatarFallback} from "@/lib/utils"
@@ -28,33 +28,43 @@ import {exportData, getProblematicComments} from "@/lib/data";
 export function CommentsList() {
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const [totalElements, setTotalElements] = useState(0)
     const [probabilityRange, setProbabilityRange] = useState([0.7, 1.0])
     const [dateRange, setDateRange] = useState({
         from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Ngày đầu tiên của tháng hiện tại
         to: new Date(), // Ngày hiện tại
     })
     const [isExporting, setIsExporting] = useState(false)
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const [comments, setComments] = useState([])
+    // Thêm state để theo dõi các giá trị filter đang được áp dụng
+    const [appliedFilters, setAppliedFilters] = useState({
+        page: 1,
+        probabilityRange: [0.7, 1.0],
+        dateRange: {
+            from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            to: new Date(),
+        }
+    })
 
     const loadComments = useCallback(async () => {
         setIsLoading(true);
         try {
-            const startDate = dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
-            const endDate = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+            const startDate = appliedFilters.dateRange.from ? format(appliedFilters.dateRange.from, "yyyy-MM-dd") : undefined;
+            const endDate = appliedFilters.dateRange.to ? format(appliedFilters.dateRange.to, "yyyy-MM-dd") : undefined;
 
             const result = await getProblematicComments(
-                page,
-                probabilityRange[0],
-                probabilityRange[1],
+                appliedFilters.page,
+                appliedFilters.probabilityRange[0],
+                appliedFilters.probabilityRange[1],
                 startDate,
                 endDate
             );
 
             if (result.isSuccessful) {
-                // Cập nhật để sử dụng cấu trúc dữ liệu mới
                 setComments(result.data.data || []);
                 setTotalPages(result.data.pageMeta.totalPages || 1);
+                setTotalElements(result.data.pageMeta.totalElements || 0);
             } else {
                 toast.error("Failed to load comments");
                 console.error("Error loading comments:", result.message);
@@ -65,12 +75,34 @@ export function CommentsList() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, probabilityRange, dateRange.from, dateRange.to]);
+    }, [appliedFilters]);
 
-// Tải dữ liệu khi component mount hoặc khi các điều kiện lọc thay đổi
+    // Chỉ tải dữ liệu lần đầu khi component mount
     useEffect(() => {
         loadComments();
-    }, [loadComments]);
+    }, []);
+
+    // Cập nhật lại khi thay đổi trang
+    useEffect(() => {
+        if (page !== appliedFilters.page) {
+            setAppliedFilters(prev => ({
+                ...prev,
+                page: page
+            }));
+            loadComments();
+        }
+    }, [page]);
+
+    const handleApplyFilter = () => {
+        // Cập nhật các bộ lọc đã áp dụng
+        setAppliedFilters({
+            page: 1, // Reset về trang 1 khi áp dụng bộ lọc mới
+            probabilityRange,
+            dateRange
+        });
+        setPage(1); // Reset page state để đồng bộ với appliedFilters
+        loadComments();
+    };
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -201,6 +233,32 @@ export function CommentsList() {
                     </div>
                 </div>
 
+                {/* Thêm nút Apply Filter */}
+                <Button
+                    onClick={handleApplyFilter}
+                    className="w-full"
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <span className="flex items-center justify-center">
+                            <span>Loading...</span>
+                        </span>
+                    ) : (
+                        <span className="flex items-center justify-center">
+                            <FilterIcon className="mr-2 h-4 w-4"/>
+                            <span>Apply Filter</span>
+                        </span>
+                    )}
+                </Button>
+
+                {/* Hiển thị tổng số phần tử */}
+                {totalElements > 0 && (
+                    <div className="text-sm text-muted-foreground flex justify-between items-center">
+                        <span>Total: <strong>{totalElements.toLocaleString()}</strong> comments found</span>
+                        <span>Page {page} of {totalPages}</span>
+                    </div>
+                )}
+
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
@@ -329,7 +387,6 @@ export function CommentsList() {
                 <Button onClick={handleExport} className="w-full" disabled={isExporting}>
                     {isExporting ? (
                         <span className="flex items-center">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                             <span>Exporting...</span>
                         </span>
                     ) : (

@@ -23,7 +23,5 @@ public class SuggestionDomain {
 
     int point;
 
-    int mutualFriends;
-
     Status status;
 }

@@ -80,8 +80,8 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
         if (relationshipDomain == null) {
             throw new NotFoundException("Friend request not found");
         } else if (relationshipDomain.getRelation() == ERelationship.PENDING && relationshipDomain.getUser().getId() == userId) {
-            customEventPublisher.publishFriendRequestAcceptedEvent(receiverId, userId);
             relationshipDatabasePort.updateRelation(userId, receiverId, ERelationship.FRIEND);
+            customEventPublisher.publishFriendRequestAcceptedEvent(receiverId, userId);
         } else if (relationshipDomain.getRelation() == ERelationship.BLOCK) {
             throw new RelationshipException("Cannot accept friend request");
         }
@@ -108,7 +108,6 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
         long userId = SecurityUtil.getCurrentUserId();
         checkFriend(friendId);
         RelationshipDomain relationshipDomain = relationshipDatabasePort.find(userId, friendId).orElse(null);
-        customEventPublisher.publishBlockedEvent(userId, friendId);
         if (userId != friendId) {
             if (relationshipDomain == null) {
                 relationshipDatabasePort.createRelationship(userId, friendId, ERelationship.BLOCK);
@@ -119,6 +118,7 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
         } else {
             throw new RelationshipException("Cannot block yourself");
         }
+        customEventPublisher.publishBlockedEvent(userId, friendId);
     }
 
     @Override
@@ -126,7 +126,6 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
         long userId = SecurityUtil.getCurrentUserId();
         checkFriend(friendId);
         RelationshipDomain relationshipDomain = relationshipDatabasePort.find(userId, friendId).orElse(null);
-        customEventPublisher.publishUnblockedEvent(userId, friendId);
         if (relationshipDomain != null && relationshipDomain.getUser().getId() == userId && relationshipDomain.getRelation() == ERelationship.BLOCK) {
             relationshipDatabasePort.unblock(userId, friendId);
             customEventPublisher.publishUnblockedEvent(userId, friendId);

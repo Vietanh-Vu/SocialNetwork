@@ -29,9 +29,6 @@ public class Suggestion {
     @Column(name = "suggest_point")
     private int point;
 
-    @Column(name = "mutual_friends")
-    private int mutualFriends;
-
     @ColumnDefault("NONE")
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

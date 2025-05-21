@@ -28,9 +28,6 @@ public class Suggestion {
     @Column(name = "suggest_point")
     private int point;
 
-    @Column(name = "mutual_friends")
-    private int mutualFriends;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;

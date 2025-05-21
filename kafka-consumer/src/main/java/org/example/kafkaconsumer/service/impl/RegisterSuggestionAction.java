@@ -6,7 +6,6 @@ import org.example.kafkaconsumer.infrastructure.entity.User;
 import org.example.kafkaconsumer.infrastructure.repository.SuggestionRepository;
 import org.example.kafkaconsumer.infrastructure.repository.UserRepository;
 import org.example.kafkaconsumer.service.AbstractSuggestionAction;
-import org.example.kafkaconsumer.service.ISuggestionAction;
 import org.example.kafkaconsumer.share.enums.Gender;
 import org.example.kafkaconsumer.share.enums.Status;
 import org.example.kafkaconsumer.share.enums.SuggestionEventType;
@@ -34,7 +33,8 @@ public class RegisterSuggestionAction extends AbstractSuggestionAction {
     public void handle(SuggestionEventDto event) {
         Optional<User> userOptional = userRepository.findById(event.getUserId());
         List<User> users = userRepository.findAll();
-        
+
+        // tính toán điểm của user mới so với toàn bộ user trong hệ thống
         if (userOptional.isPresent() && !users.isEmpty()) {
             User user1 = userOptional.get();
             for (User user2 : users) {
@@ -45,23 +45,12 @@ public class RegisterSuggestionAction extends AbstractSuggestionAction {
                 Suggestion suggestion = Suggestion.builder()
                     .user(user1)
                     .friend(user2)
-                    .point(calculateScore(user1, user2))
-                    .mutualFriends(0)
+                    .point(calculateMatchingProfile(user1, user2))
                     .status(Status.NONE)
                     .build();
                     
                 suggestionRepository.save(suggestion);
             }
         }
-    }
-
-    private int calculateScore(User user1, User user2) {
-        int score = 0;
-        if (Objects.equals(user1.getLocation(), user2.getLocation())) score += 10;
-        if (user1.getGender() == Gender.FEMALE && user2.getGender() == Gender.MALE) score += 10;
-        if (user1.getGender() == Gender.MALE && user2.getGender() == Gender.FEMALE) score += 10;
-        if (user1.getGender() == Gender.OTHERS && user2.getGender() == Gender.OTHERS) score += 10;
-        if (user1.getDateOfBirth().equals(user2.getDateOfBirth())) score += 10;
-        return score;
     }
 }

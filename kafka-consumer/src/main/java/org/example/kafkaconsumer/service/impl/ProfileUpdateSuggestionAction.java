@@ -40,28 +40,10 @@ public class ProfileUpdateSuggestionAction extends AbstractSuggestionAction {
                 if (Objects.equals(event.getUserId(), user2.getId())) {
                     user2 = suggestion.getFriend();
                 }
-                
-                int addition = calculateMutualFriendsScore(suggestion.getMutualFriends());
-                suggestion.setPoint(addition + calculateScore(user1, user2));
+
+                suggestion.setPoint(this.calculateMatchingProfile(user1, user2) + this.calculateMutualFriendsScore(user1.getId(), user2.getId()));
                 suggestionRepository.save(suggestion);
             }
         }
-    }
-
-    private int calculateMutualFriendsScore(int mutualFriends) {
-        if (mutualFriends > 0 && mutualFriends < 11) return 10;
-        if (mutualFriends > 10 && mutualFriends < 21) return 20;
-        if (mutualFriends > 20) return 30;
-        return 0;
-    }
-
-    private int calculateScore(User user1, User user2) {
-        int score = 0;
-        if (Objects.equals(user1.getLocation(), user2.getLocation())) score += 10;
-        if (user1.getGender() == Gender.FEMALE && user2.getGender() == Gender.MALE) score += 10;
-        if (user1.getGender() == Gender.MALE && user2.getGender() == Gender.FEMALE) score += 10;
-        if (user1.getGender() == Gender.OTHERS && user2.getGender() == Gender.OTHERS) score += 10;
-        if (user1.getDateOfBirth().equals(user2.getDateOfBirth())) score += 10;
-        return score;
     }
 }

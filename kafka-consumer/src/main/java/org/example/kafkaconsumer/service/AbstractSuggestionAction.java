@@ -8,10 +8,10 @@ import org.example.kafkaconsumer.infrastructure.repository.RelationshipRepositor
 import org.example.kafkaconsumer.infrastructure.repository.SuggestionRepository;
 import org.example.kafkaconsumer.infrastructure.repository.UserElasticsearchRepository;
 import org.example.kafkaconsumer.infrastructure.repository.UserRepository;
+import org.example.kafkaconsumer.share.enums.Gender;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 public abstract class AbstractSuggestionAction implements ISuggestionAction {
@@ -24,20 +24,14 @@ public abstract class AbstractSuggestionAction implements ISuggestionAction {
   @Autowired
   protected UserRepository userRepository;
 
-  protected void updatePoint(long user1Id, List<User> users, int point) {
+  protected void updatePoint(long user1Id, List<User> users) {
+    User user1 = userRepository.findById(user1Id).orElse(null);
+    if (user1 == null) return;
     for (User user2 : users) {
       Suggestion suggestion = suggestionRepository.findByUserAndFriend(user1Id, user2.getId());
       if (suggestion == null) continue;
-      int numberOfMutualFriends = suggestion.getMutualFriends() + point;
-      suggestion.setMutualFriends(numberOfMutualFriends);
-      if (point < 0) {
-        if (numberOfMutualFriends == 0 || numberOfMutualFriends == 10 || numberOfMutualFriends == 20)
-          suggestion.setPoint(suggestion.getPoint() + point * 10);
 
-      } else {
-        if (numberOfMutualFriends == 1 || numberOfMutualFriends == 11 || numberOfMutualFriends == 21)
-          suggestion.setPoint(suggestion.getPoint() + point * 10);
-      }
+      suggestion.setPoint(this.calculateMutualFriendsScore(user1Id, user2.getId()) + this.calculateMatchingProfile(user2, user1));
       suggestionRepository.save(suggestion);
     }
   }
@@ -56,5 +50,26 @@ public abstract class AbstractSuggestionAction implements ISuggestionAction {
         userElasticsearchRepository.save(updatedDocument);
       }
     }
+  }
+
+  protected int calculateMutualFriendsScore(Long user1Id, Long user2Id) {
+    Set<Long> curUserFriendsId = new HashSet<>(relationshipRepository.getFriendIdsByUserId(user1Id));
+    long mutualFriends = relationshipRepository.getFriendIdsByUserId(user2Id).stream()
+        .filter(curUserFriendsId::contains)
+        .count();
+    if (mutualFriends > 0 && mutualFriends < 11) return 10;
+    if (mutualFriends > 10 && mutualFriends < 21) return 20;
+    if (mutualFriends > 20) return 30;
+    return 0;
+  }
+
+  protected int calculateMatchingProfile(User user1, User user2) {
+    int score = 0;
+    if (Objects.equals(user1.getLocation(), user2.getLocation())) score += 10;
+    if (user1.getGender() == Gender.FEMALE && user2.getGender() == Gender.MALE) score += 10;
+    if (user1.getGender() == Gender.MALE && user2.getGender() == Gender.FEMALE) score += 10;
+    if (user1.getGender() == Gender.OTHERS && user2.getGender() == Gender.OTHERS) score += 10;
+    if (user1.getDateOfBirth().equals(user2.getDateOfBirth())) score += 10;
+    return score;
   }
 }

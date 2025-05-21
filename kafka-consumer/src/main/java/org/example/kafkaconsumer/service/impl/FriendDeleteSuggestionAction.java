@@ -37,10 +37,10 @@ public class FriendDeleteSuggestionAction extends AbstractSuggestionAction {
         List<User> user2Friends = relationshipRepository.getListUserWithRelation(event.getTargetUserId(), ERelationship.FRIEND);
         
         if (!user2Friends.isEmpty()) {
-            updatePoint(event.getUserId(), user2Friends, -1);
+            updatePoint(event.getUserId(), user2Friends);
         }
         if (!user1Friends.isEmpty()) {
-            updatePoint(event.getTargetUserId(), user1Friends, -1);
+            updatePoint(event.getTargetUserId(), user1Friends);
         }
         this.updateUserDocument(List.of(event.getUserId(), event.getTargetUserId()));
     }
