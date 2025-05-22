@@ -15,6 +15,23 @@ export async function middleware(request) {
         return NextResponse.next();
     }
 
+    // Nếu không có access token và có refresh token, gọi API để làm mới access token
+    if (!accessToken && refreshToken) {
+        const result = await refreshAccessToken(refreshToken);
+        if (result.isSuccessful) {
+            const response = NextResponse.next();
+            // Set cookie cho access token mới
+            response.cookies.set("access-token", result.data.accessToken, {
+                maxAge: parseInt(process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRY),
+            });
+            // Set cookie cho refresh token mới
+            response.cookies.set("refresh-token", result.data.refreshToken, {
+                maxAge: parseInt(process.env.NEXT_PUBLIC_ACCESS_REFRESH_EXPIRY),
+            });
+            return response;
+        }
+    }
+
     // Kiểm tra route dành cho admin
     if (isAdminRoute(request.nextUrl.pathname)) {
         if (!accessToken) {
@@ -40,18 +57,6 @@ export async function middleware(request) {
             return NextResponse.redirect(url);
         }
     }
-
-    // if (!accessToken && refreshToken) {
-    //     const result = await refreshAccessToken(refreshToken);
-    //     if (result.isSuccessful) {
-    //         const accessToken = result.data.accessToken;
-    //         const response = NextResponse.next();
-    //         response.cookies.set("access-token", accessToken, {
-    //             maxAge: process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRY,
-    //         });
-    //         return response;
-    //     }
-    // }
 
     if (!accessToken || !refreshToken) {
         // return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, request.url));

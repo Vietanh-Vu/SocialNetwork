@@ -154,7 +154,7 @@ public class AuthServiceImpl implements AuthServicePort {
         UserDomain user = userDatabase.findById(Long.parseLong(userId));
 
         UserDetails userDetails = User.builder()
-                .username(user.getEmail())
+                .username(String.valueOf(user.getId()))
                 .password(user.getPassword())
                 .authorities(String.valueOf(ERole.USER))
                 .build();
