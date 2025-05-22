@@ -214,35 +214,49 @@ public class RelationshipServiceImpl implements RelationshipServicePort {
 
     @Override
     public Page<FriendResponse> searchUser(int page, int pageSize, String keyWord) {
-        long authUserId = SecurityUtil.getCurrentUserId();
-        List<UserDomain> suggestionDomains = userDatabasePort.searchUser(keyWord);
-        List<Long> userIds = suggestionDomains.stream().map(UserDomain::getId).toList();
+      long authUserId = SecurityUtil.getCurrentUserId();
 
-        List<Suggestion> suggestions = suggestionRepository.findAllByUser_IdAndFriend_IdIn(authUserId, userIds);
-        Map<Long, Integer> pointMap = suggestions.stream()
-            .collect(Collectors.toMap(
-                s -> s.getFriend().getId(),
-                Suggestion::getPoint
-            ));
+      // Tìm tất cả user có từ khóa (bao gồm cả chính mình)
+      List<UserDomain> allMatches = userDatabasePort.searchUser(keyWord);
 
-        List<UserDomain> userDomains = new ArrayList<>();
-        for (Long userid: userIds) {
-            if (authUserId == userid) continue;
-            userDomains.add(userDatabasePort.findById(userid));
-        }
+      // Lọc bỏ chính người đang đăng nhập ngay từ đầu
+      List<UserDomain> filteredMatches = allMatches.stream()
+          .filter(user -> user.getId() != authUserId)
+          .toList();
 
-        // Sắp xếp theo điểm giảm dần
-        userDomains.sort((u1, u2) -> {
-            int point1 = pointMap.getOrDefault(u1.getId(), 0);
-            int point2 = pointMap.getOrDefault(u2.getId(), 0);
-            return Integer.compare(point2, point1); // giảm dần
+      List<Long> userIds = filteredMatches.stream().map(UserDomain::getId).toList();
+
+      // Lấy điểm gợi ý nếu có
+      List<Suggestion> suggestions = suggestionRepository.findAllByUser_IdAndFriend_IdIn(authUserId, userIds);
+      Map<Long, Integer> pointMap = suggestions.stream()
+          .collect(Collectors.toMap(
+              s -> s.getFriend().getId(),
+              Suggestion::getPoint
+          ));
+
+      // Lọc những người bị block
+      List<UserDomain> userAfterFilter = new ArrayList<>(filteredMatches.stream()
+          .filter(user -> {
+            ERelationship relationship = relationshipDatabasePort.getRelationship(authUserId, user.getId());
+            return relationship == null || !relationship.equals(ERelationship.BLOCK);
+          })
+          .toList());
+
+      // Sắp xếp theo điểm giảm dần (nếu có hơn 2 người)
+      if (userAfterFilter.size() > 2) {
+        userAfterFilter.sort((u1, u2) -> {
+          int point1 = pointMap.getOrDefault(u1.getId(), 0);
+          int point2 = pointMap.getOrDefault(u2.getId(), 0);
+          return Integer.compare(point2, point1); // giảm dần
         });
+      }
 
-        List<FriendResponse> friendResponds = customSuggestionMapper.userDomainsToSearchFriendResponses(userDomains);
-        return getPage(page, pageSize, friendResponds);
+      // Mapping sang response
+      List<FriendResponse> friendResponses = customSuggestionMapper.userDomainsToSearchFriendResponses(userAfterFilter);
+      return getPage(page, pageSize, friendResponses);
     }
 
-    private void checkFriend(long friendId) {
+  private void checkFriend(long friendId) {
         if (userDatabasePort.findById(friendId) == null)
             throw new NotFoundException("Not found friend");
     }
