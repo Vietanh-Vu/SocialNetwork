@@ -8,13 +8,14 @@ function TextExpander({children}) {
         return <span></span>;
     }
 
-    if (children.split(" ").length < 40) {
+    if (children.length < 100) {
         return <span>{children}</span>;
     }
 
+
     const displayText = isExpanded
         ? children
-        : children.split(" ").slice(0, 40).join(" ") + "...";
+        : children.substring(0, 70) + "... ";
 
     return (
         <span>

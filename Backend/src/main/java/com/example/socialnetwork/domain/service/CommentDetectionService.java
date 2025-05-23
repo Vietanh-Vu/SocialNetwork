@@ -28,8 +28,8 @@ public class CommentDetectionService {
           );
 
       if (Objects.isNull(detectCommentResponse) ||
-          Objects.isNull(detectCommentResponse.getPrediction()) ||
-          Objects.isNull(detectCommentResponse.getPrediction().getHateProbability())) {
+          Objects.isNull(detectCommentResponse.getNormalizedHateProbability()) ||
+          Objects.isNull(detectCommentResponse.getOriginalHateProbability())) {
         log.error(">>> [DetectCommentResponse] Error while calling detect comment {} API: {}", text, detectCommentResponse);
         return null;
       }

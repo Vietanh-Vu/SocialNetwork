@@ -1,4 +1,5 @@
 import os
+import pymysql.cursors
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -22,3 +23,14 @@ class Config:
 
     # Allowed client IPs
     ALLOWED_IPS = os.getenv('ALLOWED_IPS', '127.0.0.1,::1,172.20.0.1,172.21.0.1').split(',')
+
+    # Database configuration
+    DB_CONFIG = {
+        'host': os.getenv('DB_HOST', 'localhost'),
+        'port': int(os.getenv('DB_PORT', 3306)),
+        'user': os.getenv('DB_USER', 'root'),
+        'password': os.getenv('DB_PASS', 'password'),
+        'database': os.getenv('DB_NAME', 'socialnetwork'),
+        'charset': 'utf8mb4',
+        'cursorclass': pymysql.cursors.DictCursor
+    }

@@ -63,13 +63,15 @@ public class CommentServiceImpl implements CommentServicePort {
         Double thresholdToImportToProblematicComment = globalConfigDatabasePort.getThresholdToImportToProblematicComment();
         DetectCommentResponse detectCommentResponse = commentDetectionService.detect(commentDomain.getContent());
         if (!Objects.isNull(detectCommentResponse)) {
-            Double hateSpeechProbability = detectCommentResponse.getPrediction().getHateProbability();
+            Double normalizedHateProbability = detectCommentResponse.getNormalizedHateProbability();
+            Double originalHateProbability = detectCommentResponse.getOriginalHateProbability();
+            double hateSpeechProbability = Math.max(normalizedHateProbability, originalHateProbability);
             if (hateSpeechProbability > thresholdToImportToProblematicComment) {
                 ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
                     .user(commentDomain.getUser())
                     .content(commentDomain.getContent())
                     .createdAt(Instant.now())
-                    .spamProbability(hateSpeechProbability)
+                    .spamProbability(originalHateProbability)
                     .build();
                 problematicCommentDatabasePort.createProblematicComment(problematicComment);
             }

@@ -7,6 +7,7 @@ import ipaddress
 
 from config import Config
 from utils.model_utils import HateSpeechModel
+from utils.text_normalizer import TextNormalizer
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -27,11 +28,12 @@ logger = logging.getLogger(__name__)
 
 # Initialize the model
 model = None
-
+normalizer = None
 
 def initialize_model():
-    global model
+    global model, normalizer
     model = HateSpeechModel.get_instance(Config.MODEL_PATH)
+    normalizer = TextNormalizer(Config.DB_CONFIG)
 
 
 # Authentication decorator
@@ -77,29 +79,32 @@ def ip_whitelist(f):
 @require_api_key
 @ip_whitelist
 def detect_hate_speech():
-    # Get request data
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
 
     data = request.get_json()
-
-    # Validate input
     if 'text' not in data or not data['text'].strip():
         return jsonify({"error": "Text is required"}), 400
 
     text = data['text'].strip()
 
     try:
-        # Get prediction from model
-        result = model.predict(text)
+        # Dự đoán trên text gốc
+        original_result = model.predict(text)
 
-        # Return result
+        # Dự đoán trên text đã được normalize
+        normalized_text = normalizer.normalize_text(text)
+        normalized_result = model.predict(normalized_text)
+
+        # Lấy xác suất hate của cả hai kết quả
+        original_hate_prob = original_result["probabilities"]["HATE"]
+        normalized_hate_prob = normalized_result["probabilities"]["HATE"]
+
         response = {
-            "text": text,
-            "prediction": {
-                "hate_probability": result["probabilities"]["HATE"],
-                "clean_probability": result["probabilities"]["CLEAN"]
-            },
+            "original_text": text,
+            "normalized_text": normalized_text,
+            "original_hate_probability": original_hate_prob,
+            "normalized_hate_probability": normalized_hate_prob,
             "timestamp": datetime.now().isoformat()
         }
 
@@ -108,7 +113,6 @@ def detect_hate_speech():
     except Exception as e:
         logger.error(f"Error processing request: {str(e)}")
         return jsonify({"error": "Error processing request"}), 500
-
 
 # Health check endpoint - unprotected for monitoring
 @app.route('/health', methods=['GET'])
