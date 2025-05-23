@@ -6,15 +6,11 @@ import ScrollToTop from "@/app/(overview)/components/ultils/ScrollToTop";
 
 
 export default async function Page({searchParams}) {
-    const page = searchParams?.page;
-    const result = await getNewsFeed(page);
-    let pageMeta = null;
-    let userPost = null;
+    // Đảm bảo page là số nguyên và mặc định là 1
+    const page = parseInt(searchParams?.page) || 1;
+    const pageSize = 10; // Số bài viết mỗi trang, phù hợp với backend
 
-    if (result.isSuccessful) {
-        pageMeta = result.data.pageMeta;
-        userPost = result.data.data;
-    }
+    const result = await getNewsFeed(page, pageSize);
 
     return (
         <>
@@ -25,8 +21,15 @@ export default async function Page({searchParams}) {
                     </div>
                 </CardHeader>
                 <CardContent className="grid gap-6">
-                    {!result.isSuccessful ? <SomethingWentWrong/> :
-                        <PostList initialUserPost={userPost} initialPageMeta={pageMeta}/>}
+                    {!result.isSuccessful ? (
+                        <SomethingWentWrong/>
+                    ) : (
+                        <PostList
+                            initialUserPost={result.data.data}
+                            initialPageMeta={result.data.pageMeta}
+                            fetchMoreAction="newsfeed"
+                        />
+                    )}
                 </CardContent>
             </Card>
             <ScrollToTop/>

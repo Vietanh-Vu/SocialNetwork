@@ -121,9 +121,14 @@ export async function getReactionInPost(page = 1, post_id) {
         })
 }
 
-export async function getNewsFeed(page = 1) {
+export async function getNewsFeed(page = 1, pageSize = 10) {
     return await http
-        .get("/newsfeed", {params: {page}})
+        .get("/newsfeed", {
+            params: {
+                page,
+                pageSize
+            }
+        })
         .then((res) => {
             return {
                 isSuccessful: true,

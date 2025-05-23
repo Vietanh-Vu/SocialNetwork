@@ -4,7 +4,7 @@ import {Button} from "@/components/ui/button";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useDebouncedCallback} from "use-debounce";
 
-function Search() {
+function Search({searchFor}) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const {replace} = useRouter();
@@ -23,7 +23,7 @@ function Search() {
         <form className="flex items-center gap-4">
             <Input
                 type="search"
-                placeholder="Search for user..."
+                placeholder={`Search for ${searchFor} ...`}
                 className="flex-1"
                 onChange={(e) => {
                     handleSearch(e.target.value)

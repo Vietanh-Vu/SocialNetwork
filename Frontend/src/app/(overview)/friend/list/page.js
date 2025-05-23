@@ -1,15 +1,12 @@
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
-import FriendItem from "@/app/(overview)/components/friend/FriendItem";
-import {getFriendRequest, getListFriend, searchFriend} from "@/lib/data";
-import ScrollToTop from "@/app/(overview)/components/ultils/ScrollToTop";
+// Frontend/src/app/(overview)/friend/list/page.js
+import Search from "@/app/(overview)/components/ultils/Search";
 import SomethingWentWrong from "@/app/(overview)/components/ultils/SomethingWentWrong";
 import FriendList from "@/app/(overview)/components/friend/FriendList";
-import SearchFriend from "@/app/(overview)/components/ultils/SearchFriend";
-import Search from "@/app/(overview)/components/ultils/Search";
+import ScrollToTop from "@/app/(overview)/components/ultils/ScrollToTop";
+import {getListFriend, searchFriend} from "@/lib/data";
 
 export default async function Page({searchParams}) {
-    const page = searchParams?.page || 1;
+    const page = 1;
     const query = searchParams?.query || '';
 
     // Nếu có từ khóa tìm kiếm, gọi hàm searchFriend, nếu không thì lấy toàn bộ danh sách bạn bè
@@ -27,10 +24,15 @@ export default async function Page({searchParams}) {
 
     return (
         <div className="flex flex-col gap-4 pt-6">
-            <Search />
+            <Search searchFor={"friend"}/>
             <div className="grid gap-4">
                 {!result.isSuccessful ? <SomethingWentWrong/> : (
-                    <FriendList initialFriends={friends} initialPageMeta={pageMeta} type={query ? "search" : "list"}/>
+                    <FriendList
+                        initialFriends={friends}
+                        initialPageMeta={pageMeta}
+                        type={query ? "friend-search" : "list"}
+                        searchQuery={query}
+                    />
                 )}
                 <ScrollToTop/>
             </div>

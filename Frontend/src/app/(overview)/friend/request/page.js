@@ -3,8 +3,8 @@ import SomethingWentWrong from "@/app/(overview)/components/ultils/SomethingWent
 import FriendList from "@/app/(overview)/components/friend/FriendList";
 import ScrollToTop from "@/app/(overview)/components/ultils/ScrollToTop";
 
-export default async function Page({searchParams}) {
-    const page = searchParams?.page;
+export default async function Page() {
+    const page = 1;
     const result = await getFriendRequest(page);
 
     let pageMeta = null;
