@@ -34,7 +34,7 @@ public class SuggestionEventConsumer {
         if (value.containsKey("userId")) {
           eventDto.setUserId(((Number) value.get("userId")).longValue());
         }
-        if (value.containsKey("targetUserId")) {
+        if (value.containsKey("targetUserId") && value.get("targetUserId") != null) {
           eventDto.setTargetUserId(((Number) value.get("targetUserId")).longValue());
         }
         if (value.containsKey("type")) {
