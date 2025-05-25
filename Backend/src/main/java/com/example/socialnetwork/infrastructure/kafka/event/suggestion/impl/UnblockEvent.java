@@ -1,9 +1,9 @@
 package com.example.socialnetwork.infrastructure.kafka.event.suggestion.impl;
 
+import com.example.socialnetwork.infrastructure.kafka.event.suggestion.SuggestionEvent;
 import com.example.socialnetwork.infrastructure.kafka.event.EventType;
-import com.example.socialnetwork.infrastructure.kafka.event.suggestion.UserInteractionEvent;
 
-public class UnblockEvent extends UserInteractionEvent {
+public class UnblockEvent extends SuggestionEvent {
   public UnblockEvent(long userId, long targetUserId) {
     super(userId, targetUserId, EventType.USER_UNBLOCKED);
   }
