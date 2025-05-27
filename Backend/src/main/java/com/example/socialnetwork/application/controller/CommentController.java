@@ -39,7 +39,7 @@ public class CommentController extends BaseController {
                                                           @RequestParam(value = "post_id") Long postId,
                                                           @RequestParam(defaultValue = "1") int page,
                                                           @RequestParam(value = "page_size", defaultValue = "5") int pageSize,
-                                                          @RequestParam(value = "sort_by", defaultValue = "createdAt") String sortBy,
+                                                          @RequestParam(value = "sort_by", defaultValue = "updatedAt") String sortBy,
                                                           @RequestParam(value = "sort_direction", defaultValue = "desc") String sortDirection) {
         Page<CommentResponse> childComments = commentServicePort.getChildComments(postId, commentId, page, pageSize, sortBy, sortDirection);
         return buildResponse("Get comment successfully", childComments);
