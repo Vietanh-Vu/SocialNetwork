@@ -8,6 +8,7 @@ import com.example.socialnetwork.common.mapper.CommentMapper;
 import com.example.socialnetwork.common.util.HandleFile;
 import com.example.socialnetwork.common.util.SecurityUtil;
 import com.example.socialnetwork.domain.model.*;
+import com.example.socialnetwork.domain.port.api.CommentBanServicePort;
 import com.example.socialnetwork.domain.port.api.CommentServicePort;
 import com.example.socialnetwork.domain.port.api.S3ServicePort;
 import com.example.socialnetwork.domain.port.api.StorageServicePort;
@@ -21,6 +22,7 @@ import org.pmml4s.model.Model;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +30,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+@Component
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentServicePort {
     private final CommentDatabasePort commentDatabasePort;
@@ -42,6 +45,7 @@ public class CommentServiceImpl implements CommentServicePort {
     private final ProblematicCommentDatabasePort problematicCommentDatabasePort;
     private final GlobalConfigDatabasePort globalConfigDatabasePort;
     private final CommentDetectionService commentDetectionService;
+    private final CommentBanServicePort commentBanServicePort;
 
     @PostConstruct
     public void init()  {
@@ -54,6 +58,17 @@ public class CommentServiceImpl implements CommentServicePort {
     }
 
     private void isSpam(CommentDomain commentDomain) {
+        Long userId = commentDomain.getUser().getId();
+        // Kiểm tra xem người dùng có bị ban không
+        if (commentBanServicePort.isUserBanned(userId)) {
+            int banDurationHours = globalConfigDatabasePort.getBanDurationHours();
+            throw new NotAllowException(
+                String.format(
+                    "Commenting is disabled for %d hours due to repeated spam.",
+                    banDurationHours));
+        }
+
+        // Kiểm tra config xem có dùng comment detection không
         Integer startDetectComment = globalConfigDatabasePort.getStartDetectComment();
         if (startDetectComment == 0) {
             return;
@@ -76,7 +91,17 @@ public class CommentServiceImpl implements CommentServicePort {
                 problematicCommentDatabasePort.createProblematicComment(problematicComment);
             }
             if (hateSpeechProbability > hateSpeechThreshold) {
-                throw new NotAllowException("Your comment is considered as spam");
+                commentBanServicePort.trackSpamComment(userId);
+                int remainingViolations = commentBanServicePort.getRemainingSpamCount(userId);
+                if (remainingViolations > 0) {
+                    throw new NotAllowException("Your comment is considered as spam");
+                } else {
+                    int banDurationHours = globalConfigDatabasePort.getBanDurationHours();
+                    throw new NotAllowException(
+                            String.format("You have reached the spam limit and are banned from commenting for %d hours.",
+                                    banDurationHours)
+                    );
+                }
             }
         } else {
             ProblematicCommentDomain problematicComment = ProblematicCommentDomain.builder()
@@ -174,7 +199,15 @@ public class CommentServiceImpl implements CommentServicePort {
 //        }
         checkUserCommentAndUserPost(userId, commentRequest.getPostId());
         checkParentComment(userId, commentRequest.getParentCommentId(), commentRequest.getPostId());
-        isSpam(commentMapper.commentRequestToCommentDomain(commentRequest));
+        isSpam(CommentDomain.builder()
+                .user(UserDomain.builder().id(SecurityUtil.getCurrentUserId()).build())
+                .post(PostDomain.builder().id(commentRequest.getPostId()).build())
+                .parentCommentId(commentRequest.getParentCommentId())
+                .content(commentRequest.getContent())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build());
+
         long postId = commentRequest.getPostId();
         PostDomain postDomain = postDatabasePort.findById(postId);
         postDomain.setLastComment(Instant.now());

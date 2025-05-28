@@ -59,6 +59,34 @@ public class GlobalConfigDatabaseAdapter implements GlobalConfigDatabasePort {
   }
 
   @Override
+  public Integer getMaxSpamCount() {
+    GlobalConfig config = this.findByCode(GlobalConfigConstants.MAX_SPAM_COUNT);
+    if (Objects.isNull(config)) {
+      return GlobalConfigConstants.MAX_SPAM_COUNT_DEFAULT;
+    } else {
+      try {
+        return Integer.parseInt(config.getDesc());
+      } catch (NumberFormatException e) {
+        return GlobalConfigConstants.MAX_SPAM_COUNT_DEFAULT;
+      }
+    }
+  }
+
+  @Override
+  public Integer getBanDurationHours() {
+    GlobalConfig config = this.findByCode(GlobalConfigConstants.BAN_DURATION_HOURS);
+    if (Objects.isNull(config)) {
+      return GlobalConfigConstants.BAN_DURATION_HOURS_DEFAULT;
+    } else {
+      try {
+        return Integer.parseInt(config.getDesc());
+      } catch (NumberFormatException e) {
+        return GlobalConfigConstants.BAN_DURATION_HOURS_DEFAULT;
+      }
+    }
+  }
+
+  @Override
   public GlobalConfig findByCode(String code) {
     return globalConfigRepository.findByCode(code).orElse(null);
   }

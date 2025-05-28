@@ -10,4 +10,10 @@ public class GlobalConfigConstants {
 
   public static final String START_DETECT_COMMENT = "start_detect_comment";
   public static final Integer START_DETECT_COMMENT_DEFAULT = 0;
+
+  public static final String MAX_SPAM_COUNT = "max_spam_count";
+  public static final Integer MAX_SPAM_COUNT_DEFAULT = 5;
+
+  public static final String BAN_DURATION_HOURS = "ban_duration_hours";
+  public static final Integer BAN_DURATION_HOURS_DEFAULT = 24;
 }

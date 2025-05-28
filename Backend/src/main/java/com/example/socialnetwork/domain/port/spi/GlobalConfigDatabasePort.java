@@ -8,6 +8,8 @@ public interface GlobalConfigDatabasePort {
   Double getHateSpeechThreshold();
   Double getThresholdToImportToProblematicComment();
   Integer getStartDetectComment();
+  Integer getMaxSpamCount();
+  Integer getBanDurationHours();
   GlobalConfig findByCode(String code);
   List<GlobalConfig> findByCodeContaining(String code);
 }

@@ -180,31 +180,6 @@ public class BeanConfig {
   }
 
   @Bean
-  public CommentServicePort commentServicePort(
-      CommentDatabasePort commentDatabasePort,
-      UserDatabasePort userDatabase,
-      PostDatabasePort postDatabasePort,
-      RelationshipDatabasePort relationshipDatabasePort,
-      CommentMapper commentMapper,
-      StorageServicePort storageServicePort,
-      S3ServicePort s3ServicePort,
-      ProblematicCommentDatabasePort problematicCommentDatabasePort,
-      GlobalConfigDatabasePort globalConfigDatabasePort,
-      CommentDetectionService commentDetectionService) {
-    return new CommentServiceImpl(
-        commentDatabasePort,
-        userDatabase,
-        postDatabasePort,
-        relationshipDatabasePort,
-        commentMapper,
-        storageServicePort,
-        s3ServicePort,
-        problematicCommentDatabasePort,
-        globalConfigDatabasePort,
-        commentDetectionService);
-  }
-
-  @Bean
   public CommentReactionDatabasePort commentReactionDatabasePort(
       CommentReactionRepository commentReactionRepository) {
     return new CommentReactionDatabaseAdapter(commentReactionRepository);

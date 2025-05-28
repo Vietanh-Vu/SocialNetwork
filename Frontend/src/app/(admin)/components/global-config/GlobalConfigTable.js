@@ -34,7 +34,7 @@ export function GlobalConfigTable() {
     const [configs, setConfigs] = useState([])
     const [pageMeta, setPageMeta] = useState({
         page: 1,
-        pageSize: 5,
+        pageSize: 10,
         totalElements: 0,
         totalPages: 1,
         hasPrev: false,
