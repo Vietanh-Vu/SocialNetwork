@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 model = None
 normalizer = None
 
+
 def initialize_model():
     global model, normalizer
     model = HateSpeechModel.get_instance(Config.MODEL_PATH)
@@ -43,7 +44,8 @@ def require_api_key(f):
         # Check for API key in header
         api_key = request.headers.get(Config.API_KEY_HEADER)
         if not api_key or api_key != Config.API_TOKEN:
-            logger.warning(f"Invalid API key attempt from {request.remote_addr}")
+            logger.warning(
+                f"Invalid API key attempt from {request.remote_addr}")
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
 
@@ -60,11 +62,13 @@ def ip_whitelist(f):
                 # Check if the IP is in any allowed subnets
                 client_ip_obj = ipaddress.ip_address(client_ip)
                 allowed = any(
-                    client_ip_obj in ipaddress.ip_network(allowed_ip, strict=False)
+                    client_ip_obj in ipaddress.ip_network(
+                        allowed_ip, strict=False)
                     for allowed_ip in Config.ALLOWED_IPS if '/' in allowed_ip
                 )
                 if not allowed:
-                    logger.warning(f"Access attempt from unauthorized IP: {client_ip}")
+                    logger.warning(
+                        f"Access attempt from unauthorized IP: {client_ip}")
                     return jsonify({"error": "Forbidden"}), 403
             except ValueError:
                 # If there's an error parsing IPs, deny access
@@ -108,6 +112,9 @@ def detect_hate_speech():
             "timestamp": datetime.now().isoformat()
         }
 
+        # Log the response
+        logger.info(f"Detect hate speech result: {response}")
+
         return jsonify(response), 200
 
     except Exception as e:
@@ -115,6 +122,8 @@ def detect_hate_speech():
         return jsonify({"error": "Error processing request"}), 500
 
 # Health check endpoint - unprotected for monitoring
+
+
 @app.route('/health', methods=['GET'])
 def health_check():
     try:

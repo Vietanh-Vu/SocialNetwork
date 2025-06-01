@@ -97,13 +97,15 @@ function Post({postInfo}) {
                                     <Carousel className="w-full max-w-md">
                                         <CarouselContent>
                                             {photoResponses.map((photo) => (
-                                                <ImageViewer
-                                                    src={photo.url}
-                                                    alt="Post Image"
-                                                    width={1000}
-                                                    height={500}
-                                                    className="rounded-lg max-h-[500px]"
-                                                />
+                                                <CarouselItem key={photo.id || photo.url}>
+                                                    <ImageViewer
+                                                        src={photo.url}
+                                                        alt="Post Image"
+                                                        width={1000}
+                                                        height={500}
+                                                        className="rounded-lg max-h-[500px]"
+                                                    />
+                                                </CarouselItem>
                                             ))}
                                         </CarouselContent>
                                         <CarouselPrevious/>

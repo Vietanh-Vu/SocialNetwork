@@ -1,0 +1,23 @@
+# Flask settings
+SECRET_KEY=
+DEBUG=
+
+# API security - chỉ sử dụng API key đơn giản
+API_TOKEN=
+
+# Model settings
+MODEL_PATH=hate_speech_model
+
+# Allowed origins for CORS
+ALLOWED_ORIGINS=
+
+# Allowed client IPs - add your SpringBoot server IP here
+ALLOWED_IPS=
+
+# Database configuration
+DB_HOST=
+DB_HOST=
+# DB_PORT=3306
+DB_NAME=
+DB_USER=
+DB_PASS=

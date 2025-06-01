@@ -46,12 +46,7 @@ public class CommentBanServiceImpl implements CommentBanServicePort {
 
   @Override
   public boolean isUserBanned(Long userId) {
-    try {
-      tokenServicePort.getTokenInfo("banned", TokenType.COMMENT_BAN);
-      return true;
-    } catch (IllegalArgumentException e) {
-      return false;
-    }
+    return tokenServicePort.checkTokenBanUser("banned", userId, TokenType.COMMENT_BAN);
   }
 
   @Override

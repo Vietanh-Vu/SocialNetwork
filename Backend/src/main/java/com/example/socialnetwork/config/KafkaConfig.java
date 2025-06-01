@@ -12,7 +12,7 @@ public class KafkaConfig {
   @Bean
   public NewTopic socialEventsTopic() {
     return TopicBuilder.name(SUGGESTION_EVENTS_TOPIC)
-        .partitions(3)
+        .partitions(1)
         .replicas(1)
         .build();
   }

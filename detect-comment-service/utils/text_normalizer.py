@@ -22,7 +22,8 @@ class TextNormalizer:
     def setup_patterns(self):
         self.extra_spaces_pattern = re.compile(r'\s+')
         self.repeated_chars_pattern = re.compile(r'(.)\1{2,}')
-        self.emoji_pattern = re.compile(r'[\U0001F600-\U0001F64F]|[\U0001F300-\U0001F5FF]')
+        self.emoji_pattern = re.compile(
+            r'[\U0001F600-\U0001F64F]|[\U0001F300-\U0001F5FF]')
 
     def load_config_from_db(self):
         try:
@@ -44,28 +45,49 @@ class TextNormalizer:
                         data = json.loads(desc)
                         if code == 'ABBREVIATIONS':
                             self.abbreviations = data
-                            logger.info(f"Loaded abbreviations: {len(self.abbreviations)}")
+                            logger.info(
+                                f"Loaded abbreviations: {len(self.abbreviations)}")
                         elif code == 'LEET_MAPPING':
                             self.leet_mapping = data
-                            logger.info(f"Loaded leet mapping: {len(self.leet_mapping)}")
+                            logger.info(
+                                f"Loaded leet mapping: {len(self.leet_mapping)}")
                         elif code == 'HOMOGLYPHS_MAPPING':
                             self.homoglyphs_mapping = data
-                            logger.info(f"Loaded homoglyphs mapping: {len(self.homoglyphs_mapping)}")
+                            logger.info(
+                                f"Loaded homoglyphs mapping: {len(self.homoglyphs_mapping)}")
                     except Exception:
                         logger.warning(f"Failed parsing config for {code}")
         except Exception as e:
             logger.error(f"Error loading config from DB: {e}")
 
     def normalize_text(self, text: str) -> str:
-        # Giữ nguyên case ban đầu để xử lý, chỉ lowercase ở cuối
+        original_text = text
         text = text.lower()
+        logger.info(f"After lowercase: '{text}'")
+
         text = self.remove_emojis(text)
+        logger.info(f"After remove_emojis: '{text}'")
+
         text = self.remove_special_chars_between_letters(text)
+        logger.info(f"After remove_special_chars_between_letters: '{text}'")
+
         text = self.normalize_homoglyphs(text)
+        logger.info(f"After normalize_homoglyphs: '{text}'")
+
         text = self.normalize_leet_speak(text)
+        logger.info(f"After normalize_leet_speak: '{text}'")
+
         text = self.remove_repeated_chars(text)
+        logger.info(f"After remove_repeated_chars: '{text}'")
+
         text = self.expand_abbreviations(text)
+        logger.info(f"After expand_abbreviations: '{text}'")
+
         text = self.normalize_spacing(text)
+        logger.info(f"After normalize_spacing: '{text}'")
+
+        logger.info(
+            f"Text normalization complete - Original: '{original_text}' -> Normalized: '{text}'")
         return text
 
     def remove_emojis(self, text: str) -> str:
@@ -131,4 +153,3 @@ class TextNormalizer:
 
     def normalize_spacing(self, text: str) -> str:
         return self.extra_spaces_pattern.sub(' ', text).strip()
-

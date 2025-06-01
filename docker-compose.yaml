@@ -1,85 +1,283 @@
+networks:
+  social-network:
+    driver: bridge
+
 services:
+  # Database
   mysql:
     container_name: mysql
-    image: 'mysql:8.4.1'
+    image: mysql:8.0-debian
     environment:
-      - 'MYSQL_DATABASE=${DB_NAME}'
-      - 'MYSQL_PASSWORD=${DB_PASS}'
-      - 'MYSQL_ROOT_USER=${DB_USER}'
-      - 'MYSQL_ROOT_PASSWORD=${DB_PASS}'
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_ROOT_USER=${DB_USER}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
     ports:
-      - '${DB_PORT}:3306'
+      - ${DB_PORT}:3306
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=ROW --binlog-row-image=FULL
+    networks:
+      - social-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${DB_PASS}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Cache
   redis:
     container_name: redis
-    image: 'redis:7.2.4'
-    restart: 'no'
+    image: redis:7.2.4
+    restart: no
     ports:
-      - '${RD_PORT}:6379'
+      - ${RD_PORT}:6379
+    networks:
+      - social-network
+
+  # Search Engine
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    restart: no
+    ports:
+      - ${ES_PORT}:9200
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    mem_limit: 1g
+    networks:
+      - social-network
+
+  # Kafka ecosystem
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    container_name: zookeeper
+    restart: no
+    ports:
+      - ${ZOOKEEPER_CLIENT_PORT}:2181
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    networks:
+      - social-network
+
+  broker:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: broker
+    restart: no
+    ports:
+      - ${KAFKA_PORT}:9092
+    depends_on:
+      zookeeper:
+        condition: service_started
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test:
+        ["CMD", "kafka-topics", "--bootstrap-server", "broker:29092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    restart: no
+    ports:
+      - ${KAFKA_UI_PORT}:8080
+    environment:
+      - DYNAMIC_CONFIG_ENABLED=true
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${KAFKA_HOST}:${KAFKA_PORT}
+    depends_on:
+      - broker
+    networks:
+      - social-network
+
+  debezium-connect:
+    image: debezium/connect:2.3
+    container_name: debezium-connect
+    ports:
+      - "8083:8083"
+    environment:
+      - GROUP_ID=${KAFKA_GROUP_ID}
+      - CONFIG_STORAGE_TOPIC=connect_configs
+      - OFFSET_STORAGE_TOPIC=connect_offsets
+      - STATUS_STORAGE_TOPIC=connect_statuses
+      - BOOTSTRAP_SERVERS=broker:29092
+      - KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - KEY_CONVERTER_SCHEMAS_ENABLE=true
+      - VALUE_CONVERTER_SCHEMAS_ENABLE=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - broker
+      - mysql
+    networks:
+      - social-network
+
+  # Backend services
   api-service:
     container_name: api-service
     build:
       context: Backend
       dockerfile: Dockerfile
-    restart: 'no'
+    restart: no
     ports:
-      - '${API_PORT}:8080'
+      - ${API_PORT}:8080
     environment:
-      - 'DB_HOST=${DB_HOST}'
-      - 'DB_PORT=${DB_PORT}'
-      - 'DB_NAME=${DB_NAME}'
-      - 'DB_USER=${DB_USER}'
-      - 'DB_PASS=${DB_PASS}'
-      - 'RD_HOST=${RD_HOST}'
-      - 'RD_PORT=${RD_PORT}'
-      - 'JWT_SECRET=${JWT_SECRET}'
-      - 'AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}'
-      - 'AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}'
-      - 'AWS_REGION=${AWS_REGION}'
-      - 'AWS_BUCKET_NAME=${AWS_BUCKET_NAME}'
-      - 'GM_USERNAME=${GM_USERNAME}'
-      - 'GM_PASSWORD=${GM_PASSWORD}'
-      - 'FRONT_END_DOMAIN=${FRONT_END_DOMAIN}'
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - RD_HOST=${RD_HOST}
+      - RD_PORT=${RD_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - GM_USERNAME=${GM_USERNAME}
+      - GM_PASSWORD=${GM_PASSWORD}
+      - FRONT_END_DOMAIN=${FRONT_END_DOMAIN}
+      - KAFKA_HOST=${KAFKA_HOST}
+      - KAFKA_PORT=${KAFKA_PORT}
+      - ES_HOST=${ES_HOST}
+      - ES_PORT=${ES_PORT}
+      - DETECT_COMMENT_HOST=${DETECT_COMMENT_HOST}
+      - X_API_KEY=${X_API_KEY}
+      - SPRING_FLYWAY_REPAIR=true
+      - DEBEZIUM_CONFIG=${DEBEZIUM_CONFIG}
+    entrypoint: >
+      sh -c "
+        echo 'Waiting for Debezium Connect to be available...';
+        until curl -s http://debezium-connect:8083/connectors > /dev/null; do
+          echo 'Waiting for Debezium Connect...';
+          sleep 5;
+        done;
+        
+        echo 'Registering MySQL connector...';
+        curl -X POST http://debezium-connect:8083/connectors -H 'Content-Type: application/json' -d \"\$$DEBEZIUM_CONFIG\";
+        echo 'MySQL connector registered successfully';
+        
+        java -jar /app/run.jar;
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      broker:
+        condition: service_healthy
+      debezium-connect:
+        condition: service_started
+    networks:
+      - social-network
+
+  kafka-consumer:
+    container_name: kafka-consumer
+    build:
+      context: kafka-consumer
+      dockerfile: Dockerfile
+    restart: no
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - ES_HOST=${ES_HOST}
+      - ES_PORT=${ES_PORT}
+      - KAFKA_HOST=${KAFKA_HOST}
+      - KAFKA_PORT=${KAFKA_PORT}
+    depends_on:
+      api-service:
+        condition: service_healthy
+    networks:
+      - social-network
+
   detect-comment-service:
     container_name: detect-comment-service
     build:
       context: detect-comment-service
       dockerfile: Dockerfile
     ports:
-      - '5000:5000'
+      - "5000:5000"
     volumes:
-      - './:/app'
-      - './hate_speech_model:/app/hate_speech_model'
-    env_file:
-      - .env
+      - ./detect-comment-service:/app
+      - ./detect-comment-service/hate_speech_model:/app/hate_speech_model
     environment:
       - PYTHONUNBUFFERED=1
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - API_TOKEN=${X_API_KEY}
+      - MODEL_PATH=hate_speech_model
+      - ALLOWED_ORIGINS=${FRONT_END_DOMAIN},${API_HOST}
+      - ALLOWED_IPS=172.17.0.1,127.0.0.1,api-service
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
     restart: unless-stopped
     healthcheck:
-      test:
-        - CMD
-        - curl
-        - '-f'
-        - 'http://localhost:5000/health'
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    depends_on:
+      api-service:
+        condition: service_healthy
+    networks:
+      - social-network
+
+  # Frontend
   socialnetwork-service:
     container_name: socialnetwork-service
     build:
       context: Frontend
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
-      - 'NEXT_PUBLIC_API_URL=${API_HOST}/api/v1'
+      - NEXT_PUBLIC_API_URL=http://${API_HOST}:${API_PORT}/api/v1
       - NEXT_PUBLIC_ACCESS_TOKEN_EXPIRY=604800000
       - NEXT_PUBLIC_ACCESS_REFRESH_EXPIRY=604800000
       - NEXT_PUBLIC_ACCESS_VERIFY_EXPIRY=900000
     depends_on:
-      - mysql
-      - redis
       - api-service
-
+    networks:
+      - social-network

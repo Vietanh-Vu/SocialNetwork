@@ -1,14 +1,13 @@
 # Database Configuration
-DB_HOST=mysql
-DB_PORT=3306
-DB_NAME=socialnetwork
-DB_USER=root
-DB_PASS=password
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASS=
 
 # Redis Configuration
-RD_HOST=redis
-#RD_HOST=localhost
-RD_PORT=6379
+RD_HOST=
+RD_PORT=
 
 # JWT Configuration
 JWT_SECRET=
@@ -23,6 +22,35 @@ AWS_BUCKET_NAME=
 GM_USERNAME=
 GM_PASSWORD=
 
-API_HOST=api-service
-API_PORT=8080
-FRONT_END_DOMAIN=http://localhost:3000
+# API Configuration
+API_HOST=
+API_PORT=
+FRONT_END_DOMAIN=
+
+# Zookeeper environment variables
+ZOOKEEPER_HOST=
+ZOOKEEPER_CLIENT_PORT=
+
+# Kafka environment variables
+KAFKA_HOST=
+KAFKA_PORT=
+KAFKA_GROUP_ID=
+
+# Kafka UI environment variables
+KAFKA_UI_PORT=
+
+# Elasticsearch environment variables
+ES_HOST=
+ES_PORT=
+
+# Detect comment service
+DETECT_COMMENT_HOST=
+API_TOKEN=
+X_API_KEY=
+
+# Flask settings for detect-comment service
+SECRET_KEY=
+DEBUG=
+
+# Debezium configuration
+DEBEZIUM_CONFIG={\"name\":\"users-connector\",\"config\":{\"connector.class\":\"io.debezium.connector.mysql.MySqlConnector\",\"tasks.max\":\"1\",\"database.hostname\":\"mysql\",\"database.port\":\"3306\",\"database.user\":\"root\",\"database.password\":\"password\",\"database.server.id\":\"184054\",\"topic.prefix\":\"cdc\",\"database.include.list\":\"socialnetwork\",\"table.include.list\":\"socialnetwork.users\",\"schema.history.internal.kafka.bootstrap.servers\":\"broker:29092\",\"schema.history.internal.kafka.topic\":\"schema-changes.users\",\"include.schema.changes\":\"true\"}}

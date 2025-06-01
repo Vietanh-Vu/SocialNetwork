@@ -79,8 +79,8 @@ export function CommentsList() {
 
     // Chỉ tải dữ liệu lần đầu khi component mount
     useEffect(() => {
-        loadComments();
-    }, []);
+        loadComments().then(r => {});
+    }, [loadComments]);
 
     // Cập nhật lại khi thay đổi trang
     useEffect(() => {
@@ -89,9 +89,9 @@ export function CommentsList() {
                 ...prev,
                 page: page
             }));
-            loadComments();
+            loadComments().then(r => {});
         }
-    }, [page]);
+    }, [appliedFilters.page, loadComments, page]);
 
     const handleApplyFilter = () => {
         // Cập nhật các bộ lọc đã áp dụng

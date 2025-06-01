@@ -1,11 +1,9 @@
 package com.example.socialnetwork.domain.service;
 
 import com.example.socialnetwork.common.constant.TokenType;
-import com.example.socialnetwork.config.TokenProperties;
 import com.example.socialnetwork.domain.port.api.TokenServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.userdetails.User;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -42,14 +40,21 @@ public class TokenServiceImpl implements TokenServicePort {
     public String getTokenInfo(String token, TokenType tokenType) {
         String keyPattern = String.format(KEY_PATTERN, tokenType, "*", token);
         Set<String> keys = redisTemplate.keys(keyPattern);
-        if (keys == null || keys.isEmpty()) {
+        if (keys.isEmpty()) {
             throw new IllegalArgumentException("Invalid token");
         }
         String key = keys.iterator().next();
         return key.split("::")[1];
     }
 
-    @Override
+  @Override
+  public Boolean checkTokenBanUser(String token, Long userId, TokenType tokenType) {
+    String keyPattern = String.format(KEY_PATTERN, tokenType, userId, token);
+    Set<String> keys = redisTemplate.keys(keyPattern);
+    return !keys.isEmpty();
+  }
+
+  @Override
     public void saveToken(String token, String userId, TokenType tokenType, long expiration) {
         redisTemplate.opsForValue().set(
                 String.format(KEY_PATTERN, tokenType.name(), userId, token),
