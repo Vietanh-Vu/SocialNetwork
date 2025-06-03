@@ -10,4 +10,5 @@ public interface TokenServicePort {
     Boolean checkTokenBanUser(String token, Long userId, TokenType tokenType);
     void saveToken(String token, String userId, TokenType tokenType, long expiration);
     String getTokenByUserId(String userId, TokenType tokenType);
+    void deleteToken(String key);
 }

@@ -72,4 +72,9 @@ public class TokenServiceImpl implements TokenServicePort {
         }
         return keys.iterator().next().split("::")[2];
     }
+
+  @Override
+  public void deleteToken(String key) {
+    redisTemplate.delete(key);
+  }
 }

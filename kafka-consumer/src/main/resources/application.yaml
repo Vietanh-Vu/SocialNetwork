@@ -16,7 +16,7 @@ spring:
     open-in-view: false
   kafka:
     consumer:
-      bootstrap-servers: broker:29092
+      bootstrap-servers: localhost:9092
       group-id: social-network
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

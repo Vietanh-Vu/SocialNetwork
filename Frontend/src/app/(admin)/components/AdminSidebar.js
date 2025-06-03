@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { MessageSquareWarning, Settings } from "lucide-react";
+import {usePathname} from "next/navigation";
+import {MessageSquareWarning, Settings, AlertTriangle} from "lucide-react";
 
 export function AdminSidebar() {
     const pathname = usePathname();
@@ -24,7 +24,7 @@ export function AdminSidebar() {
                                     : "hover:bg-muted/50"
                             }`}
                         >
-                            <Settings className="h-4 w-4" />
+                            <Settings className="h-4 w-4"/>
                             <span>Global Config</span>
                         </Link>
                     </li>
@@ -37,8 +37,21 @@ export function AdminSidebar() {
                                     : "hover:bg-muted/50"
                             }`}
                         >
-                            <MessageSquareWarning className="h-4 w-4" />
+                            <MessageSquareWarning className="h-4 w-4"/>
                             <span>Problematic Comments</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="/admin/top-violators"
+                            className={`flex items-center gap-2 p-2 rounded-md text-sm ${
+                                isActive("/admin/top-violators")
+                                    ? "bg-muted text-primary"
+                                    : "hover:bg-muted/50"
+                            }`}
+                        >
+                            <AlertTriangle className="h-4 w-4"/>
+                            <span>Top Violators</span>
                         </Link>
                     </li>
                 </ul>

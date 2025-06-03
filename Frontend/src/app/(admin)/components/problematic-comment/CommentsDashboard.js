@@ -93,30 +93,30 @@ export function CommentsDashboard() {
                 </CardContent>
             </Card>
 
-            <Card className="md:col-span-2 lg:col-span-4">
-                <CardHeader>
-                    <CardTitle>Top Violators</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                        {dashboardData.topViolators.map((violator) => (
-                            <div key={violator.userId} className="flex items-center gap-4 rounded-lg border p-4">
-                                <Avatar>
-                                    <AvatarImage src={violator.avatar || "/placeholder.svg"} alt={violator.username} />
-                                    <AvatarFallback>{getAvatarFallback(violator.username)}</AvatarFallback>
-                                </Avatar>
-                                <div className="space-y-1">
-                                    <p className="text-sm font-medium leading-none">{violator.username}</p>
-                                    <p className="text-sm text-muted-foreground">User ID: {violator.userId}</p>
-                                    <p className="text-sm font-semibold text-destructive">
-                                        {violator.commentCount.toLocaleString()} problematic comments
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+            {/*<Card className="md:col-span-2 lg:col-span-4">*/}
+            {/*    <CardHeader>*/}
+            {/*        <CardTitle>Top Violators</CardTitle>*/}
+            {/*    </CardHeader>*/}
+            {/*    <CardContent>*/}
+            {/*        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">*/}
+            {/*            {dashboardData.topViolators.map((violator) => (*/}
+            {/*                <div key={violator.userId} className="flex items-center gap-4 rounded-lg border p-4">*/}
+            {/*                    <Avatar>*/}
+            {/*                        <AvatarImage src={violator.avatar || "/placeholder.svg"} alt={violator.username} />*/}
+            {/*                        <AvatarFallback>{getAvatarFallback(violator.username)}</AvatarFallback>*/}
+            {/*                    </Avatar>*/}
+            {/*                    <div className="space-y-1">*/}
+            {/*                        <p className="text-sm font-medium leading-none">{violator.username}</p>*/}
+            {/*                        <p className="text-sm text-muted-foreground">User ID: {violator.userId}</p>*/}
+            {/*                        <p className="text-sm font-semibold text-destructive">*/}
+            {/*                            {violator.commentCount.toLocaleString()} problematic comments*/}
+            {/*                        </p>*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
+            {/*            ))}*/}
+            {/*        </div>*/}
+            {/*    </CardContent>*/}
+            {/*</Card>*/}
         </div>
     )
 }

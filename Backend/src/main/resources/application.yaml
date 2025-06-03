@@ -35,7 +35,7 @@ spring:
           starttls:
             enable: true
   kafka:
-    bootstrap-servers: broker:29092
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: social-network
       auto-offset-reset: earliest

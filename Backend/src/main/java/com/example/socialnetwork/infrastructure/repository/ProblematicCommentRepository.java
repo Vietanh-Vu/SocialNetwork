@@ -29,4 +29,6 @@ public interface ProblematicCommentRepository extends JpaRepository<ProblematicC
   List<Object[]> findTopViolatingUsers(Pageable pageable);
 
   Long countByUser(User user);
+
+  Page<ProblematicComment> findByUser(User user, Pageable pageable);
 }

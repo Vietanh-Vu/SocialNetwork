@@ -5,6 +5,7 @@ import com.example.socialnetwork.application.request.ConfigUpdateRequest;
 import com.example.socialnetwork.application.response.*;
 import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
+import com.example.socialnetwork.domain.port.api.CommentBanServicePort;
 import com.example.socialnetwork.domain.port.api.GlobalConfigServicePort;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
 import com.example.socialnetwork.infrastructure.entity.GlobalConfig;
@@ -38,6 +39,7 @@ public class AdminController extends BaseController {
   private final GlobalConfigServicePort globalConfigService;
   private final ProblematicCommentServicePort problematicCommentService;
   private final ProblematicCommentMapper problematicCommentMapper;
+  private final CommentBanServicePort commentBanService;
 
   // Global Config endpoints
   @PreAuthorize("hasAuthority('ADMIN')")
@@ -158,8 +160,57 @@ public class AdminController extends BaseController {
   @PreAuthorize("hasAuthority('ADMIN')")
   @GetMapping("/stats/top-violators")
   public ResponseEntity<ResultResponse> getTopViolators(
-      @RequestParam(defaultValue = "10") int limit) {
-    TopViolatingUsersResponse topUsers = problematicCommentService.getTopViolatingUsers(limit);
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(defaultValue = "false") boolean includeBanned,
+      @RequestParam(defaultValue = "false") boolean onlyBanned) {
+    TopViolatingUsersResponse topUsers = problematicCommentService.getTopViolatingUsers(limit, includeBanned, onlyBanned);
     return buildResponse("Get top violating users successfully", topUsers);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @PostMapping("/users/{userId}/ban")
+  public ResponseEntity<ResultResponse> banUser(
+      @PathVariable Long userId,
+      @RequestParam(defaultValue = "true") boolean ban) {
+    if (ban) {
+      commentBanService.banUserByAdmin(userId);
+    } else {
+      commentBanService.unbanUserByAdmin(userId);
+    }
+    return buildResponse(ban ? "User banned successfully" : "User unbanned successfully", null);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @GetMapping("/users/{userId}/problematic-comments")
+  public ResponseEntity<ResultResponse> getUserProblematicComments(
+      @PathVariable Long userId,
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(value = "page_size", defaultValue = "10") int pageSize,
+      @RequestParam(value = "sort_by", defaultValue = "createdAt") String sortBy,
+      @RequestParam(value = "sort_direction", defaultValue = "desc") String sortDirection) {
+
+    Page<ProblematicCommentDomain> comments = problematicCommentService.getUserProblematicComments(
+        userId, page, pageSize, sortBy, sortDirection);
+
+    Page<ProblematicCommentResponse> responseComments = comments.map(problematicCommentMapper::toProblematicCommentResponse);
+
+    return buildResponse("Get user problematic comments successfully", responseComments);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @GetMapping("/users/{userId}/violation-stats")
+  public ResponseEntity<ResultResponse> getUserViolationStats(
+      @PathVariable Long userId,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+    Instant startInstant = startDate != null ?
+        startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
+    Instant endInstant = endDate != null ?
+        endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
+
+    UserViolationStatsResponse stats = problematicCommentService.getUserViolationStats(userId, startInstant, endInstant);
+
+    return buildResponse("Get user violation statistics successfully", stats);
   }
 }

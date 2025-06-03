@@ -13,11 +13,11 @@ export default function ProblematicCommentsPage() {
             <CommentsDashboard/>
 
             <Tabs defaultValue="comments">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="comments">Comments List</TabsTrigger>
                     <TabsTrigger value="weekly">Weekly Trends</TabsTrigger>
                     <TabsTrigger value="monthly">Monthly Trends</TabsTrigger>
-                    <TabsTrigger value="violators">Top Violators</TabsTrigger>
+                    {/*<TabsTrigger value="violators">Top Violators</TabsTrigger>*/}
                 </TabsList>
 
                 <TabsContent value="comments" className="mt-4">
@@ -32,9 +32,9 @@ export default function ProblematicCommentsPage() {
                     <MonthlyChart/>
                 </TabsContent>
 
-                <TabsContent value="violators" className="mt-4">
-                    <TopViolators/>
-                </TabsContent>
+                {/*<TabsContent value="violators" className="mt-4">*/}
+                {/*    <TopViolators/>*/}
+                {/*</TabsContent>*/}
             </Tabs>
         </div>
     )

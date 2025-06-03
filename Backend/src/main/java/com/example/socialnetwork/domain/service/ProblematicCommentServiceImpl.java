@@ -1,13 +1,11 @@
 package com.example.socialnetwork.domain.service;
 
-import com.example.socialnetwork.application.response.DashboardStatResponse;
-import com.example.socialnetwork.application.response.MonthlyCommentResponse;
-import com.example.socialnetwork.application.response.TopViolatingUsersResponse;
-import com.example.socialnetwork.application.response.WeeklyCommentResponse;
+import com.example.socialnetwork.application.response.*;
 import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import com.example.socialnetwork.domain.model.UserDomain;
+import com.example.socialnetwork.domain.port.api.CommentBanServicePort;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
 import com.example.socialnetwork.domain.port.spi.ProblematicCommentDatabasePort;
 import com.example.socialnetwork.domain.port.spi.UserDatabasePort;
@@ -34,6 +32,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -47,6 +46,7 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   private final UserMapper userMapper;
   private final ProblematicCommentDatabasePort problematicCommentPort;
   private final UserDatabasePort userDatabasePort;
+  private final CommentBanServicePort commentBanServicePort;
 
   @Override
   public Page<ProblematicCommentDomain> getFilteredProblematicComments(
@@ -383,6 +383,72 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
               .avatar(user.getAvatar())
               .build();
         })
+        .collect(Collectors.toList());
+
+    return TopViolatingUsersResponse.builder()
+        .violators(violators)
+        .build();
+  }
+
+  @Override
+  public Page<ProblematicCommentDomain> getUserProblematicComments(Long userId, int page, int pageSize, String sortBy, String sortDirection) {
+    Sort sort = Sort.by(sortBy);
+    if ("desc".equalsIgnoreCase(sortDirection)) {
+      sort = sort.descending();
+    } else {
+      sort = sort.ascending();
+    }
+    Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
+
+    Page<ProblematicCommentDomain> result = problematicCommentPort.getProblematicCommentsByUserId(userId, pageable);
+    this.enrichUserDomain(result);
+    return result;
+  }
+
+  @Override
+  public UserViolationStatsResponse getUserViolationStats(Long userId, Instant startDate, Instant endDate) {
+    if (startDate == null) {
+      // Mặc định lấy 12 tháng gần nhất
+      startDate = Instant.now().minus(365, ChronoUnit.DAYS);
+    }
+
+    if (endDate == null) {
+      endDate = Instant.now();
+    }
+
+    List<MonthlyViolationData> monthlyStats = problematicCommentPort.getUserMonthlyViolationStats(userId, startDate, endDate);
+
+    return UserViolationStatsResponse.builder()
+        .userId(userId)
+        .totalCount(problematicCommentPort.countByUser(userId))
+        .monthlyStats(monthlyStats)
+        .build();
+  }
+
+  @Override
+  public TopViolatingUsersResponse getTopViolatingUsers(int limit, boolean includeBanned, boolean onlyBanned) {
+    List<TopViolatingUserDomain> topUsers = problematicCommentPort.getTopViolatingUsers(limit);
+
+    List<TopViolatingUsersResponse.ViolatorData> violators = topUsers.stream()
+        .map(violator -> {
+          UserDomain user = violator.getUser();
+          Long count = violator.getCommentCount();
+          boolean isBanned = commentBanServicePort.isUserBanned(user.getId());
+
+          // Lọc theo trạng thái ban nếu cần
+          if ((onlyBanned && !isBanned) || (!includeBanned && !onlyBanned && isBanned)) {
+            return null;
+          }
+
+          return TopViolatingUsersResponse.ViolatorData.builder()
+              .userId(user.getId())
+              .username(user.getUsername())
+              .commentCount(count)
+              .avatar(user.getAvatar())
+              .isBanned(isBanned)
+              .build();
+        })
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
     return TopViolatingUsersResponse.builder()

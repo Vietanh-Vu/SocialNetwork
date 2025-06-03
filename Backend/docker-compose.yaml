@@ -25,7 +25,7 @@ services:
       - ${RD_PORT}:6379
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: elasticsearch
+    container_name: elasticsearch1
     restart: no
     ports:
       - ${ES_PORT}:9200
@@ -40,7 +40,7 @@ services:
       - social-network
   kafka-ui:
     image: provectuslabs/kafka-ui
-    container_name: kafka-ui
+    container_name: kafka-ui1
     restart: no
     ports:
       - ${KAFKA_UI_PORT}:8080
@@ -52,7 +52,7 @@ services:
       - social-network
   zookeeper:
     image: confluentinc/cp-zookeeper:7.7.0
-    container_name: zookeeper
+    container_name: zookeeper1
     restart: no
     ports:
       - ${ZOOKEEPER_CLIENT_PORT}:2181
@@ -63,7 +63,7 @@ services:
       - social-network
   broker:
     image: confluentinc/cp-kafka:7.7.0
-    container_name: broker
+    container_name: broker1
     restart: no
     ports:
       - "9092:9092"
@@ -81,7 +81,7 @@ services:
       - social-network
   debezium-connect:
     image: debezium/connect:2.3
-    container_name: debezium-connect
+    container_name: debezium-connect1
     ports:
       - "8083:8083"
     environment:

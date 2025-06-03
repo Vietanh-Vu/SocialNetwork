@@ -1,9 +1,6 @@
 package com.example.socialnetwork.domain.port.api;
 
-import com.example.socialnetwork.application.response.DashboardStatResponse;
-import com.example.socialnetwork.application.response.MonthlyCommentResponse;
-import com.example.socialnetwork.application.response.TopViolatingUsersResponse;
-import com.example.socialnetwork.application.response.WeeklyCommentResponse;
+import com.example.socialnetwork.application.response.*;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import org.springframework.data.domain.Page;
 
@@ -28,4 +25,10 @@ public interface ProblematicCommentServicePort {
   MonthlyCommentResponse getMonthlyCommentCounts(Instant startDate, Instant endDate);
 
   TopViolatingUsersResponse getTopViolatingUsers(int limit);
+
+  Page<ProblematicCommentDomain> getUserProblematicComments(Long userId, int page, int pageSize, String sortBy, String sortDirection);
+
+  UserViolationStatsResponse getUserViolationStats(Long userId, Instant startDate, Instant endDate);
+
+  TopViolatingUsersResponse getTopViolatingUsers(int limit, boolean includeBanned, boolean onlyBanned);
 }

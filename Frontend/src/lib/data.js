@@ -403,9 +403,114 @@ export async function getMonthlyStats() {
         });
 }
 
-export async function getTopViolators(limit = 10) {
+// export async function getTopViolators(limit = 10) {
+//     return await http
+//         .get("/admin/stats/top-violators", {params: {limit}})
+//         .then((res) => {
+//             return {
+//                 isSuccessful: true,
+//                 data: res.data.result
+//             };
+//         })
+//         .catch((err) => {
+//             return {
+//                 isSuccessful: false,
+//                 message: err.response?.data?.message
+//             };
+//         });
+// }
+
+export async function getTopViolators(limit = 10, includeBanned = true, onlyBanned = false) {
     return await http
-        .get("/admin/stats/top-violators", {params: {limit}})
+        .get("/admin/stats/top-violators", {
+            params: {
+                limit,
+                includeBanned,
+                onlyBanned
+            }
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function banUser(userId, shouldBan = true) {
+    return await http
+        .post(`/admin/users/${userId}/ban`, null, {
+            params: {
+                ban: shouldBan
+            }
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getUserProblematicComments(userId, page = 1, pageSize = 10) {
+    return await http
+        .get(`/admin/users/${userId}/problematic-comments`, {
+            params: {
+                page,
+                page_size: pageSize
+            }
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getUserViolationStats(userId, startDate, endDate) {
+    return await http
+        .get(`/admin/users/${userId}/violation-stats`, {
+            params: {
+                startDate,
+                endDate
+            }
+        })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getBannedUsers() {
+    return await http
+        .get('/admin/banned-users')
         .then((res) => {
             return {
                 isSuccessful: true,

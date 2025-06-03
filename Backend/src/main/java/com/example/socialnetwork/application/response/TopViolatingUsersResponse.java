@@ -23,5 +23,6 @@ public class TopViolatingUsersResponse {
     private String username;
     private Long commentCount;
     private String avatar;
+    private boolean isBanned;
   }
 }

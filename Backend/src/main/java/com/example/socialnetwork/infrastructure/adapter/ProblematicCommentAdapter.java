@@ -1,5 +1,6 @@
 package com.example.socialnetwork.infrastructure.adapter;
 
+import com.example.socialnetwork.application.response.MonthlyViolationData;
 import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
 import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
@@ -103,4 +104,35 @@ public class ProblematicCommentAdapter implements ProblematicCommentDatabasePort
                 .build();
         }).collect(Collectors.toList());
     }
+
+  @Override
+  public Page<ProblematicCommentDomain> getProblematicCommentsByUserId(Long userId, Pageable pageable) {
+    User user = User.builder().id(userId).build();
+    return problematicCommentRepository.findByUser(user, pageable)
+        .map(problematicCommentMapper::problematicCommentEntityToProblematicCommentDomain);
+  }
+
+  @Override
+  public List<MonthlyViolationData> getUserMonthlyViolationStats(Long userId, Instant startDate, Instant endDate) {
+    String sql = "SELECT YEAR(pc.created_at) as year, MONTH(pc.created_at) as month, COUNT(*) as count " +
+        "FROM problematic_comments pc " +
+        "WHERE pc.user_id = ? " +
+        "AND pc.created_at BETWEEN ? AND ? " +
+        "GROUP BY YEAR(pc.created_at), MONTH(pc.created_at) " +
+        "ORDER BY year, month";
+
+    return jdbcTemplate.query(sql,
+        (rs, rowNum) -> MonthlyViolationData.builder()
+            .year(rs.getInt("year"))
+            .month(rs.getInt("month"))
+            .count(rs.getLong("count"))
+            .build(),
+        userId, startDate, endDate);
+  }
+
+  @Override
+  public Long countByUser(Long userId) {
+    User user = User.builder().id(userId).build();
+    return problematicCommentRepository.countByUser(user);
+  }
 }
