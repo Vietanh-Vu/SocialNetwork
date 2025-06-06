@@ -28,7 +28,7 @@ public interface ProblematicCommentServicePort {
 
   Page<ProblematicCommentDomain> getUserProblematicComments(Long userId, int page, int pageSize, String sortBy, String sortDirection);
 
-  UserViolationStatsResponse getUserViolationStats(Long userId, Instant startDate, Instant endDate);
-
   TopViolatingUsersResponse getTopViolatingUsers(int limit, boolean includeBanned, boolean onlyBanned);
+
+  UserWeeklyViolationStatsResponse getUserWeeklyViolationStats(Long userId);
 }

@@ -406,22 +406,17 @@ public class ProblematicCommentServiceImpl implements ProblematicCommentServiceP
   }
 
   @Override
-  public UserViolationStatsResponse getUserViolationStats(Long userId, Instant startDate, Instant endDate) {
-    if (startDate == null) {
-      // Mặc định lấy 12 tháng gần nhất
-      startDate = Instant.now().minus(365, ChronoUnit.DAYS);
-    }
+  public UserWeeklyViolationStatsResponse getUserWeeklyViolationStats(Long userId) {
+    // Lấy 7 tuần gần nhất
+    Instant endDate = Instant.now();
+    Instant startDate = endDate.minus(49, ChronoUnit.DAYS); // 7 tuần = 49 ngày
 
-    if (endDate == null) {
-      endDate = Instant.now();
-    }
+    List<WeeklyViolationData> weeklyStats = problematicCommentPort.getUserWeeklyViolationStats(userId, startDate, endDate);
 
-    List<MonthlyViolationData> monthlyStats = problematicCommentPort.getUserMonthlyViolationStats(userId, startDate, endDate);
-
-    return UserViolationStatsResponse.builder()
+    return UserWeeklyViolationStatsResponse.builder()
         .userId(userId)
         .totalCount(problematicCommentPort.countByUser(userId))
-        .monthlyStats(monthlyStats)
+        .weeklyStats(weeklyStats)
         .build();
   }
 

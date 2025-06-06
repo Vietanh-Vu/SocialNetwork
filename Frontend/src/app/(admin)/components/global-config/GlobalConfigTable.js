@@ -88,7 +88,6 @@ export function GlobalConfigTable() {
     }
 
     const displayedConfigs = searchResults || configs
-    console.log(displayedConfigs)
     const isSearchMode = searchResults !== null
 
     return (

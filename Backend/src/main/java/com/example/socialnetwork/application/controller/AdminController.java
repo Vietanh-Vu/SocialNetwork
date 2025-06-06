@@ -198,19 +198,9 @@ public class AdminController extends BaseController {
   }
 
   @PreAuthorize("hasAuthority('ADMIN')")
-  @GetMapping("/users/{userId}/violation-stats")
-  public ResponseEntity<ResultResponse> getUserViolationStats(
-      @PathVariable Long userId,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
-    Instant startInstant = startDate != null ?
-        startDate.atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
-    Instant endInstant = endDate != null ?
-        endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant() : null;
-
-    UserViolationStatsResponse stats = problematicCommentService.getUserViolationStats(userId, startInstant, endInstant);
-
-    return buildResponse("Get user violation statistics successfully", stats);
+  @GetMapping("/users/{userId}/weekly-violation-stats")
+  public ResponseEntity<ResultResponse> getUserViolationStats(@PathVariable Long userId) {
+    UserWeeklyViolationStatsResponse stats = problematicCommentService.getUserWeeklyViolationStats(userId);
+    return buildResponse("Get user weekly violation statistics successfully", stats);
   }
 }

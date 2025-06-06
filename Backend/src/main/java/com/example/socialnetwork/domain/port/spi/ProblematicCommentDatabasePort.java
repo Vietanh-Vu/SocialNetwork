@@ -1,6 +1,7 @@
 package com.example.socialnetwork.domain.port.spi;
 
 import com.example.socialnetwork.application.response.MonthlyViolationData;
+import com.example.socialnetwork.application.response.WeeklyViolationData;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
 import com.example.socialnetwork.domain.model.TopViolatingUserDomain;
 import org.springframework.data.domain.Page;
@@ -38,4 +39,6 @@ public interface ProblematicCommentDatabasePort {
     List<MonthlyViolationData> getUserMonthlyViolationStats(Long userId, Instant startDate, Instant endDate);
 
     Long countByUser(Long userId);
+
+    List<WeeklyViolationData> getUserWeeklyViolationStats(Long userId, Instant startDate, Instant endDate);
 }

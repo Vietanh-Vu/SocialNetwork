@@ -475,7 +475,15 @@ export async function getUserProblematicComments(userId, page = 1, pageSize = 10
         .then((res) => {
             return {
                 isSuccessful: true,
-                data: res.data.result
+                data: {
+                    content: res.data.result.data,
+                    totalElements: res.data.result.pageMeta.totalElements,
+                    totalPages: res.data.result.pageMeta.totalPages,
+                    hasNext: res.data.result.pageMeta.hasNext,
+                    hasPrev: res.data.result.pageMeta.hasPrev,
+                    page: res.data.result.pageMeta.page,
+                    pageSize: res.data.result.pageMeta.pageSize
+                }
             };
         })
         .catch((err) => {
@@ -515,6 +523,27 @@ export async function getBannedUsers() {
             return {
                 isSuccessful: true,
                 data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getUserWeeklyViolationStats(userId) {
+    return await http
+        .get(`/admin/users/${userId}/weekly-violation-stats`)
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: {
+                    userId: res.data.result.data.userId,
+                    totalCount: res.data.result.data.totalCount,
+                    weeklyStats: res.data.result.data.weeklyStats
+                }
             };
         })
         .catch((err) => {

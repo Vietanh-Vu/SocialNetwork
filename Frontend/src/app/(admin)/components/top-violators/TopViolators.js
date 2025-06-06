@@ -58,7 +58,6 @@ export function TopViolators() {
                 response.data.data.violators
             ) {
                 const violatorsWithActions = response.data.data.violators.map(v => {
-                    console.log(`User ${v.username} (${v.userId}): banned = ${v.banned}, type: ${typeof v.banned}`);
                     return {
                         ...v,
                         banApplied: Boolean(v.banned),

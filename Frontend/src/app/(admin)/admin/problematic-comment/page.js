@@ -1,9 +1,8 @@
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {CommentsDashboard} from "@/app/(admin)/components/problematic-comment/CommentsDashboard";
-import {CommentsList} from "@/app/(admin)/components/problematic-comment/CommentsList";
+import {ProblematicCommentsList} from "@/app/(admin)/components/problematic-comment/ProblematicCommentsList";
 import {WeeklyChart} from "@/app/(admin)/components/problematic-comment/WeeklyChart";
 import {MonthlyChart} from "@/app/(admin)/components/problematic-comment/MonthlyChart";
-import {TopViolators} from "@/app/(admin)/components/problematic-comment/TopViolators";
 
 export default function ProblematicCommentsPage() {
     return (
@@ -21,7 +20,7 @@ export default function ProblematicCommentsPage() {
                 </TabsList>
 
                 <TabsContent value="comments" className="mt-4">
-                    <CommentsList/>
+                    <ProblematicCommentsList/>
                 </TabsContent>
 
                 <TabsContent value="weekly" className="mt-4">
@@ -31,10 +30,6 @@ export default function ProblematicCommentsPage() {
                 <TabsContent value="monthly" className="mt-4">
                     <MonthlyChart/>
                 </TabsContent>
-
-                {/*<TabsContent value="violators" className="mt-4">*/}
-                {/*    <TopViolators/>*/}
-                {/*</TabsContent>*/}
             </Tabs>
         </div>
     )

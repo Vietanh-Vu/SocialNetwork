@@ -1,6 +1,7 @@
 package com.example.socialnetwork.infrastructure.adapter;
 
 import com.example.socialnetwork.application.response.MonthlyViolationData;
+import com.example.socialnetwork.application.response.WeeklyViolationData;
 import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
 import com.example.socialnetwork.common.mapper.UserMapper;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
@@ -134,5 +135,26 @@ public class ProblematicCommentAdapter implements ProblematicCommentDatabasePort
   public Long countByUser(Long userId) {
     User user = User.builder().id(userId).build();
     return problematicCommentRepository.countByUser(user);
+  }
+
+  @Override
+  public List<WeeklyViolationData> getUserWeeklyViolationStats(Long userId, Instant startDate, Instant endDate) {
+    String sql = "SELECT " +
+        "MIN(DATE_SUB(pc.created_at, INTERVAL WEEKDAY(pc.created_at) DAY)) as week_start, " +
+        "MAX(DATE_ADD(DATE_SUB(pc.created_at, INTERVAL WEEKDAY(pc.created_at) DAY), INTERVAL 6 DAY)) as week_end, " +
+        "COUNT(*) as count " +
+        "FROM problematic_comments pc " +
+        "WHERE pc.user_id = ? " +
+        "AND pc.created_at BETWEEN ? AND ? " +
+        "GROUP BY YEARWEEK(pc.created_at, 1) " +
+        "ORDER BY week_start ASC";
+
+    return jdbcTemplate.query(sql,
+        (rs, rowNum) -> WeeklyViolationData.builder()
+            .startDate(rs.getTimestamp("week_start").toInstant())
+            .endDate(rs.getTimestamp("week_end").toInstant())
+            .count(rs.getLong("count"))
+            .build(),
+        userId, startDate, endDate);
   }
 }

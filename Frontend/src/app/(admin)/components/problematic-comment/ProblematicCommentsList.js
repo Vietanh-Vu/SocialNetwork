@@ -25,7 +25,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {toast} from "sonner";
 import {exportData, getProblematicComments} from "@/lib/data";
 
-export function CommentsList() {
+export function ProblematicCommentsList() {
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [totalElements, setTotalElements] = useState(0)
