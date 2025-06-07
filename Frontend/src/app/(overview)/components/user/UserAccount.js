@@ -10,7 +10,7 @@ import {
 import {Button} from "@/components/ui/button";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import Link from "next/link";
-import {LogOutIcon, RectangleEllipsis, UserIcon} from "lucide-react";
+import {LogOutIcon, MessageSquare, RectangleEllipsis, UserIcon} from "lucide-react";
 import {getAvatarFallback} from "@/lib/utils";
 
 function UserAccount({userInfo}) {
@@ -40,6 +40,12 @@ function UserAccount({userInfo}) {
                     <Link href="/change_password" className="flex items-center gap-2" prefetch={false}>
                         <RectangleEllipsis className="h-4 w-4"/>
                         <span>Password</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                    <Link href="/appeal" className="flex items-center gap-2" prefetch={false}>
+                        <MessageSquare className="h-4 w-4"/>
+                        <span>Appeals</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator/>

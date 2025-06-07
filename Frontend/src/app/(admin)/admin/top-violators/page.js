@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ViolatorAnalysis } from "@/app/(admin)/components/top-violators/ViolatorAnalysis";
-import {TopViolators} from "@/app/(admin)/components/top-violators/TopViolators";
+import { TopViolators } from "@/app/(admin)/components/top-violators/TopViolators";
+import AppealsManagement from "@/app/(admin)/components/top-violators/AppealsManagement";
 
 export default function TopViolatorsPage() {
     return (
@@ -11,6 +12,7 @@ export default function TopViolatorsPage() {
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="list">Top Violators</TabsTrigger>
                     <TabsTrigger value="analysis">Violation Analysis</TabsTrigger>
+                    <TabsTrigger value="appeals">Appeals Management</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="list" className="mt-4">
@@ -19,6 +21,10 @@ export default function TopViolatorsPage() {
 
                 <TabsContent value="analysis" className="mt-4">
                     <ViolatorAnalysis />
+                </TabsContent>
+
+                <TabsContent value="appeals" className="mt-4">
+                    <AppealsManagement />
                 </TabsContent>
             </Tabs>
         </div>

@@ -2,12 +2,18 @@ package com.example.socialnetwork.application.controller;
 
 import com.example.socialnetwork.application.request.ConfigCreateRequest;
 import com.example.socialnetwork.application.request.ConfigUpdateRequest;
+import com.example.socialnetwork.application.request.ProcessAppealRequest;
 import com.example.socialnetwork.application.response.*;
+import com.example.socialnetwork.common.constant.AppealStatus;
+import com.example.socialnetwork.common.mapper.CommentBanAppealMapper;
 import com.example.socialnetwork.common.mapper.ProblematicCommentMapper;
+import com.example.socialnetwork.domain.model.CommentBanAppealDomain;
 import com.example.socialnetwork.domain.model.ProblematicCommentDomain;
+import com.example.socialnetwork.domain.port.api.CommentBanAppealServicePort;
 import com.example.socialnetwork.domain.port.api.CommentBanServicePort;
 import com.example.socialnetwork.domain.port.api.GlobalConfigServicePort;
 import com.example.socialnetwork.domain.port.api.ProblematicCommentServicePort;
+import com.example.socialnetwork.exception.custom.ClientErrorException;
 import com.example.socialnetwork.infrastructure.entity.GlobalConfig;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -30,6 +36,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -40,6 +47,8 @@ public class AdminController extends BaseController {
   private final ProblematicCommentServicePort problematicCommentService;
   private final ProblematicCommentMapper problematicCommentMapper;
   private final CommentBanServicePort commentBanService;
+  private final CommentBanAppealServicePort commentBanAppealService;
+  private final CommentBanAppealMapper commentBanAppealMapper;
 
   // Global Config endpoints
   @PreAuthorize("hasAuthority('ADMIN')")
@@ -202,5 +211,29 @@ public class AdminController extends BaseController {
   public ResponseEntity<ResultResponse> getUserViolationStats(@PathVariable Long userId) {
     UserWeeklyViolationStatsResponse stats = problematicCommentService.getUserWeeklyViolationStats(userId);
     return buildResponse("Get user weekly violation statistics successfully", stats);
+  }
+
+  // Comment Ban Appeals endpoints
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @GetMapping("/appeals")
+  public ResponseEntity<ResultResponse> getAppeals(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(value = "page_size", defaultValue = "10") int pageSize,
+      @RequestParam(value = "statuses", required = false) List<String> statuses) {
+
+    Page<CommentBanAppealDomain> appeals = commentBanAppealService.getAppeals(page, pageSize, statuses);
+    Page<CommentBanAppealResponse> response = appeals.map(commentBanAppealMapper::toCommentBanAppealResponse);
+    return buildResponse("Get appeals successfully", response);
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  @PostMapping("/appeals/{appealId}/process")
+  public ResponseEntity<ResultResponse> processAppeal(
+      @PathVariable Long appealId,
+      @Valid @RequestBody ProcessAppealRequest request) {
+    CommentBanAppealDomain processedAppeal = commentBanAppealService.processAppeal(
+        appealId, request.getApproved(), request.getAdminResponse());
+    CommentBanAppealResponse response = commentBanAppealMapper.toCommentBanAppealResponse(processedAppeal);
+    return buildResponse("Appeal processed successfully", response);
   }
 }

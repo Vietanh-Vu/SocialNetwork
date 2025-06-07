@@ -553,3 +553,100 @@ export async function getUserWeeklyViolationStats(userId) {
             };
         });
 }
+
+export async function createAppeal(reason) {
+    return await http
+        .post(`/appeals`, { reason })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getMyAppeals(page = 1, pageSize = 10) {
+    return await http
+        .get(`/appeals/my-appeals`, { params: { page, page_size: pageSize } })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function getAppealStatus() {
+    return await http
+        .get(`/appeals/status`)
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+// Admin Appeal API functions
+export async function getAdminAppeals(page = 1, pageSize = 10, statuses = null) {
+    const params = { page, page_size: pageSize };
+
+    // Xử lý statuses array thành string hoặc multiple parameters
+    if (statuses && statuses.length > 0) {
+        if (statuses.length === 1) {
+            params.statuses = statuses[0];
+        } else {
+            params.statuses = statuses.join(',');
+        }
+    }
+
+    return await http
+        .get(`/admin/appeals`, { params })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
+
+export async function processAppeal(appealId, approved, adminResponse) {
+    return await http
+        .post(`/admin/appeals/${appealId}/process`, { approved, adminResponse })
+        .then((res) => {
+            return {
+                isSuccessful: true,
+                data: res.data.result
+            };
+        })
+        .catch((err) => {
+            return {
+                isSuccessful: false,
+                message: err.response?.data?.message
+            };
+        });
+}
