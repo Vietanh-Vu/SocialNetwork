@@ -16,7 +16,7 @@ public interface CommentBanAppealRepository extends JpaRepository<CommentBanAppe
   Page<CommentBanAppeal> findByUserIdOrderByCreatedAtDesc(
       @Param("userId") Long userId, Pageable pageable);
 
-  @Query("SELECT a FROM CommentBanAppeal a WHERE a.user.id = :userId AND a.status = :25, 8:24:19 AMstatus")
+  @Query("SELECT a FROM CommentBanAppeal a WHERE a.user.id = :userId AND a.status = :status")
   Optional<CommentBanAppeal> findByUserIdAndStatus(
       @Param("userId") Long userId, @Param("status") String status);
 
