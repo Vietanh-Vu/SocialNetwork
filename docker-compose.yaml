@@ -178,13 +178,14 @@ services:
         echo 'Waiting for Debezium Connect to be available...';
         until curl -s http://debezium-connect:8083/connectors > /dev/null; do
           echo 'Waiting for Debezium Connect...';
-          sleep 5;
+          sleep 30;
         done;
         
         echo 'Registering MySQL connector...';
         curl -X POST http://debezium-connect:8083/connectors -H 'Content-Type: application/json' -d \"\$$DEBEZIUM_CONFIG\";
         echo 'MySQL connector registered successfully';
-        
+
+        sleep 30;
         java -jar /app/run.jar;
       "
     healthcheck:
@@ -203,7 +204,7 @@ services:
       broker:
         condition: service_healthy
       debezium-connect:
-        condition: service_started
+        condition: service_healthy
     networks:
       - social-network
 
@@ -212,7 +213,7 @@ services:
     build:
       context: kafka-consumer
       dockerfile: Dockerfile
-    restart: no
+    restart: unless-stopped
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
@@ -223,8 +224,23 @@ services:
       - ES_PORT=${ES_PORT}
       - KAFKA_HOST=${KAFKA_HOST}
       - KAFKA_PORT=${KAFKA_PORT}
+    entrypoint: >
+      sh -c "
+        echo 'Waiting for Debezium connector to be ready...';
+        until curl -s http://debezium-connect:8083/connectors/users-connector/status | grep -q 'RUNNING'; do
+          echo 'Waiting for users-connector to be running...';
+          sleep 2;
+        done;
+        
+        echo 'Debezium connector is running';
+        
+        echo 'Starting kafka-consumer';
+        exec java -jar /app/run.jar;
+      "
     depends_on:
-      api-service:
+      debezium-connect:
+        condition: service_healthy
+      broker:
         condition: service_healthy
     networks:
       - social-network

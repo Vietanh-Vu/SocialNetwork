@@ -14,4 +14,5 @@ RUN ./mvnw package -DskipTests
 FROM alpine/java:21-jdk
 WORKDIR /app
 COPY --from=build /build/target/*.jar run.jar
+RUN apk add --no-cache curl
 ENTRYPOINT ["java", "-jar", "/app/run.jar"]

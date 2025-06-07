@@ -77,13 +77,13 @@ export default function AppealsPage() {
         switch (status) {
             case "PENDING":
                 return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock
-                    className="w-3 h-3 mr-1"/>Đang chờ</Badge>;
+                    className="w-3 h-3 mr-1"/>Pending</Badge>;
             case "APPROVED":
                 return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle
-                    className="w-3 h-3 mr-1"/>Được chấp nhận</Badge>;
+                    className="w-3 h-3 mr-1"/>Approved</Badge>;
             case "REJECTED":
                 return <Badge variant="outline" className="text-red-600 border-red-600"><XCircle
-                    className="w-3 h-3 mr-1"/>Bị từ chối</Badge>;
+                    className="w-3 h-3 mr-1"/>Rejected</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }

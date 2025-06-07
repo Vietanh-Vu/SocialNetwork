@@ -272,7 +272,7 @@ export default function AppealsManagement(callback, deps) {
                             onClick={() => setSelectedAppeal(null)}
                             disabled={processingAppeal}
                         >
-                            Hủy
+                            Cancel
                         </Button>
                         <Button
                             variant="destructive"
