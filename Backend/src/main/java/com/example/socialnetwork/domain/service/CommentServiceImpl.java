@@ -192,7 +192,7 @@ public class CommentServiceImpl implements CommentServicePort {
     }
 
     @Override
-    public CommentDomain createComment(CommentRequest commentRequest) {
+    public CommentDomain  createComment(CommentRequest commentRequest) {
         Long userId = SecurityUtil.getCurrentUserId();
 //        if(!checkNumberImage(commentRequest.getImage())){
 //            throw new ClientErrorException("The number of photos exceeds the limit");

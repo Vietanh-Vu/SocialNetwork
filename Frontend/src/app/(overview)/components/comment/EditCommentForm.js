@@ -74,11 +74,13 @@ function EditCommentForm({commentInfo}) {
             router.refresh();
         } else {
             console.log(result.message);
-            if (result.message === 'Your comment is considered as spam') {
-                toast.error("Your comment is considered as spam");
-                return;
+            if (result.message === "Your comment is considered as spam"
+                || result.message.includes("You have reached the spam limit and are banned from commenting for")
+                || result.message.includes("Commenting is disabled for")) {
+                toast.error(result.message);
+            } else {
+                toast.error("Error while editing comment");
             }
-            toast.error("Error while editing comment");
         }
     }
 

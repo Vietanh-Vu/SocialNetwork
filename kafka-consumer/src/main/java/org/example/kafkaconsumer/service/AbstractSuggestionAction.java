@@ -69,7 +69,8 @@ public abstract class AbstractSuggestionAction implements ISuggestionAction {
     if (user1.getGender() == Gender.FEMALE && user2.getGender() == Gender.MALE) score += 10;
     if (user1.getGender() == Gender.MALE && user2.getGender() == Gender.FEMALE) score += 10;
     if (user1.getGender() == Gender.OTHERS && user2.getGender() == Gender.OTHERS) score += 10;
-    if (user1.getDateOfBirth().equals(user2.getDateOfBirth())) score += 10;
+    if (user1.getDateOfBirth() != null && user2.getDateOfBirth() != null &&
+        user1.getDateOfBirth().getYear() == user2.getDateOfBirth().getYear()) score += 10;
     return score;
   }
 }
