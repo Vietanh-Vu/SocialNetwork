@@ -45,6 +45,8 @@ public class CommentBanServiceImpl implements CommentBanServicePort {
   }
 
   private void banUser(Long userId) {
+    String spamCountKey = String.format(SPAM_COUNT_KEY, userId);
+    tokenServicePort.deleteToken(spamCountKey);
     int banDurationHours = globalConfigDatabasePort.getBanDurationHours();
     tokenServicePort.saveToken(
         "banned",
@@ -83,6 +85,8 @@ public class CommentBanServiceImpl implements CommentBanServicePort {
 
   @Override
   public void banUserByAdmin(Long userId) {
+    String spamCountKey = String.format(SPAM_COUNT_KEY, userId);
+    tokenServicePort.deleteToken(spamCountKey);
     int banDurationHours = globalConfigDatabasePort.getBanDurationHours();
     tokenServicePort.saveToken(
         "banned",
