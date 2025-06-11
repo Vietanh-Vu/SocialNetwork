@@ -56,15 +56,27 @@ def require_api_key(f):
 def ip_whitelist(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Lấy danh sách IP từ database
+        ip_whitelist = Config.get_ip_whitelist_from_db()
+
+        # Log IP của request hiện tại
         client_ip = request.remote_addr
-        if client_ip not in Config.ALLOWED_IPS:
+        logger.info(f"Incoming request from IP: {client_ip}")
+
+        # Nếu danh sách IP rỗng, chặn tất cả các yêu cầu
+        if not ip_whitelist:
+            logger.warning(
+                f"Access attempt from {client_ip} blocked: IP whitelist is empty or could not be retrieved from database")
+            return jsonify({"error": "Service temporarily unavailable"}), 503
+
+        if client_ip not in ip_whitelist:
             try:
                 # Check if the IP is in any allowed subnets
                 client_ip_obj = ipaddress.ip_address(client_ip)
                 allowed = any(
                     client_ip_obj in ipaddress.ip_network(
                         allowed_ip, strict=False)
-                    for allowed_ip in Config.ALLOWED_IPS if '/' in allowed_ip
+                    for allowed_ip in ip_whitelist if '/' in allowed_ip
                 )
                 if not allowed:
                     logger.warning(
@@ -72,7 +84,17 @@ def ip_whitelist(f):
                     return jsonify({"error": "Forbidden"}), 403
             except ValueError:
                 # If there's an error parsing IPs, deny access
+                logger.error(f"Error parsing IP address: {client_ip}")
                 return jsonify({"error": "Forbidden"}), 403
+        else:
+            logger.info(f"Request from {client_ip} allowed (IP in whitelist)")
+
+        # Log danh sách IP được phép (chỉ log khi xử lý request đầu tiên)
+        if not hasattr(app, '_ip_whitelist_logged'):
+            logger.info(
+                f"Detect Comment Service is allowing access from these IPs: {ip_whitelist}")
+            app._ip_whitelist_logged = True
+
         return f(*args, **kwargs)
 
     return decorated_function

@@ -90,7 +90,7 @@ public class CommentServiceImpl implements CommentServicePort {
                     .build();
                 problematicCommentDatabasePort.createProblematicComment(problematicComment);
             }
-            if (hateSpeechProbability > hateSpeechThreshold) {
+            if (originalHateProbability > hateSpeechThreshold) {
                 commentBanServicePort.trackSpamComment(userId);
                 int remainingViolations = commentBanServicePort.getRemainingSpamCount(userId);
                 if (remainingViolations > 0) {
@@ -282,11 +282,6 @@ public class CommentServiceImpl implements CommentServicePort {
         }
 
         commentDatabasePort.deleteComment(commentId);
-    }
-
-    @Override
-    public List<CommentDomain> findAllUpdateWithinLastDay(Instant yesterday) {
-        return commentDatabasePort.findAllUpdateWithinLastDay(yesterday);
     }
 
     @Override

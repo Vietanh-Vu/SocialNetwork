@@ -1,6 +1,7 @@
 import os
 import pymysql.cursors
 from dotenv import load_dotenv
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -34,3 +35,26 @@ class Config:
         'charset': 'utf8mb4',
         'cursorclass': pymysql.cursors.DictCursor
     }
+
+    @staticmethod
+    def get_ip_whitelist_from_db():
+        """Lấy danh sách IP được phép từ cơ sở dữ liệu"""
+        try:
+            connection = pymysql.connect(**Config.DB_CONFIG)
+            with connection.cursor() as cursor:
+                # Truy vấn global_configs để lấy danh sách IP
+                sql = "SELECT `desc` FROM `global_configs` WHERE `code` = 'detect_comment_ip_whitelist'"
+                cursor.execute(sql)
+                result = cursor.fetchone()
+
+                if result and result['desc']:
+                    ip_list = result['desc'].split(',')
+                    return ip_list
+                return []
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Error loading IP whitelist from database: {str(e)}")
+            return []
+        finally:
+            if 'connection' in locals() and connection:
+                connection.close()
