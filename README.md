@@ -32,7 +32,7 @@
   - Base: PhoBERT
   - Framework: Transformers (Hugging Face)
   - Training Data: VOZHSD + ViHSD
-  - Full model: [Download Link](https://drive.google.com/file/d/19ICXGjJ5tbpJWBAV0JG0icNnt8Ww_yro/view?usp=sharing)
+  - Full model: [Download Link](https://drive.google.com/drive/folders/1sGK22Op9IdBl6WJtBKf3mPPf_ilf8tKX?usp=sharing)
 
 - **Comment Detection Service:**
   - Framework: Flask
