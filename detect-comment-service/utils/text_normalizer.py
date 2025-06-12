@@ -3,7 +3,7 @@ import pymysql
 import json
 import logging
 import unicodedata
-
+import time
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -15,13 +15,25 @@ class TextNormalizer:
         self.leet_mapping = {}
         self.homoglyphs_mapping = {}
         self.setup_patterns()
-        self.load_config_from_db()
         # Danh sách các ký tự đặc biệt cần loại bỏ giữa các chữ cái
         self.special_chars = "!@#$%^&*()_-+={}[]|\\:;\"'<>,.?/~`"
+        self.last_loaded_time = 0
+        self.reload_interval = 300  # 5 phút
+        self.load_config_from_db()
+        self.last_loaded_time = time.time()
+
+    def load_config_from_db_if_needed(self):
+        now = time.time()
+        if now - self.last_loaded_time > self.reload_interval:
+            logger.info(
+                f"Config reload interval reached ({self.reload_interval}s). Reloading from database...")
+            self.load_config_from_db()
+            self.last_loaded_time = now
+            logger.info("Config successfully reloaded from database")
 
     def setup_patterns(self):
         self.extra_spaces_pattern = re.compile(r'\s+')
-        self.repeated_chars_pattern = re.compile(r'(.)\1{2,}')
+        self.repeated_chars_pattern = re.compile(r'(.)\1{1,}')
         self.emoji_pattern = re.compile(
             r'[\U0001F600-\U0001F64F]|[\U0001F300-\U0001F5FF]')
 
@@ -61,6 +73,7 @@ class TextNormalizer:
             logger.error(f"Error loading config from DB: {e}")
 
     def normalize_text(self, text: str) -> str:
+        self.load_config_from_db_if_needed()
         original_text = text
         text = text.lower()
         logger.info(f"After lowercase: '{text}'")
@@ -145,7 +158,7 @@ class TextNormalizer:
         return text
 
     def remove_repeated_chars(self, text: str) -> str:
-        return self.repeated_chars_pattern.sub(r'\1\1', text)
+        return self.repeated_chars_pattern.sub(r'\1', text)
 
     def expand_abbreviations(self, text: str) -> str:
         words = text.split()
