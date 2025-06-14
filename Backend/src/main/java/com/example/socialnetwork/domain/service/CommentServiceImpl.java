@@ -90,7 +90,7 @@ public class CommentServiceImpl implements CommentServicePort {
                     .build();
                 problematicCommentDatabasePort.createProblematicComment(problematicComment);
             }
-            if (originalHateProbability > hateSpeechThreshold) {
+            if (hateSpeechProbability > hateSpeechThreshold) {
                 commentBanServicePort.trackSpamComment(userId);
                 int remainingViolations = commentBanServicePort.getRemainingSpamCount(userId);
                 if (remainingViolations > 0) {
