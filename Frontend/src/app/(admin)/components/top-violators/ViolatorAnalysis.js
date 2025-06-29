@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/pagination";
 
 import {ChartContainer} from "@/components/ui/chart"
+import TextExpander from "@/app/(admin)/ultils/TextExpander";
 
 const chartConfig = {
     violations: {
@@ -332,8 +333,8 @@ export function ViolatorAnalysis() {
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="max-w-[300px]">
-                                                            <div className="truncate" title={comment.content}>
-                                                                {comment.content}
+                                                            <div className="" title={comment.content}>
+                                                                <TextExpander>{comment.content}</TextExpander>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>

@@ -24,6 +24,7 @@ import {Calendar} from "@/components/ui/calendar"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {toast} from "sonner";
 import {exportData, getProblematicComments} from "@/lib/data";
+import TextExpander from "@/app/(admin)/ultils/TextExpander";
 
 export function ProblematicCommentsList() {
     const [page, setPage] = useState(1)
@@ -300,7 +301,7 @@ export function ProblematicCommentsList() {
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-[300px] truncate">{comment.content}</TableCell>
+                                        <TableCell className="max-w-[300px]"><TextExpander>{comment.content}</TextExpander></TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <div

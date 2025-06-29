@@ -24,7 +24,7 @@ function TextExpander({children}) {
                 className="border-b border-primary-700 leading-3 pb-1"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-            {isExpanded ? "Show less" : "Show more"}
+            {isExpanded ? " Show less" : " Show more"}
       </button>
     </span>
     );
