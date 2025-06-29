@@ -4,6 +4,7 @@
       "autocomplete": {
         "type": "custom",
         "tokenizer": "standard",
+        "char_filter": ["vietnamese_char_filter"],
         "filter": [
           "lowercase",
           "asciifolding",
@@ -14,6 +15,7 @@
       "search_analyzer": {
         "type": "custom",
         "tokenizer": "standard",
+        "char_filter": ["vietnamese_char_filter"],
         "filter": [
           "lowercase",
           "asciifolding",
@@ -29,7 +31,10 @@
       },
       "vietnamese_stop": {
         "type": "stop",
-        "stopwords": ["và", "hoặc", "trong", "với", "là", "của", "có", "the", "and", "or", "in", "with", "is", "of", "has"]
+        "stopwords": [
+          "và", "hoặc", "trong", "với", "là", "của", "có",
+          "the", "and", "or", "in", "with", "is", "of", "has"
+        ]
       }
     },
     "char_filter": {
